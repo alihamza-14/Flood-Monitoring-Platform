@@ -24,7 +24,7 @@ body { margin: 0; padding: 0; }
 
     map.on('load', function () {
         // Fetch the GeoJSON data from an external file
-        fetch('http://localhost:8081/geoserver/Danish/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Danish%3Aaugust&maxFeatures=50&outputFormat=application%2Fjson')
+        fetch('add your own geoserver layer URL')
             .then(response => response.json())
             .then(geojson => {
                 // Add the GeoJSON source
@@ -43,6 +43,25 @@ body { margin: 0; padding: 0; }
                         'fill-color': '#ff0000', // Set the fill color to red
                         'fill-opacity': 0.5
                     }
+                });
+
+                // Add click event to display popup
+                map.on('click', 'geojsonLayer', function (e) {
+                    new mapboxgl.Popup()
+                        .setLngLat(e.lngLat)
+                        // display properties in popup according to your data
+                        .setHTML(`<h3>${e.features[0].properties.name}</h3><p>${e.features[0].properties.spend}</p>`)
+                        .addTo(map);
+                });
+
+                // Change the cursor to a pointer when the mouse is over the layer
+                map.on('mouseenter', 'geojsonLayer', function () {
+                    map.getCanvas().style.cursor = 'pointer';
+                });
+
+                // Change the cursor back to a default when it leaves the layer
+                map.on('mouseleave', 'geojsonLayer', function () {
+                    map.getCanvas().style.cursor = '';
                 });
             })
             .catch(error => console.error('Error fetching GeoJSON data:', error));
