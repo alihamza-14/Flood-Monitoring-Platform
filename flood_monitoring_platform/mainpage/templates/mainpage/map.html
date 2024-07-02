@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flood Map</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <style>
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+      #controls {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="controls">
+      <h3>Toggle Layers</h3>
+      <label>
+        <input type="checkbox" id="toggleFloodExtent" />
+      </label>
+    </div>
+    <script>
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoiYWxpaGFtemEtMTQiLCJhIjoiY2x4dHkzdHJ6MWhzOTJrcXdqcnFsYnU4dyJ9.LbRvUbNnNk2rUq13y-8gFQ";
+      const map = new mapboxgl.Map({
+        container: "map",
+        center: [69.3451, 30.3753],
+        zoom: 4,
+        "wms-imagery": {
+          type: "raster",
+          tiles: [
+            "http://a.example.com/wms?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&width=256&height=256&layers=example",
+          ],
+          tileSize: 256,
+        },
+      });
+
+      function addFloodExtent() {
+        fetch("/flood_extent/")
+          .then((response) => response.json())
+          .then((data) => {
+            // Parse the 'geometry' field if it's a string
+            data.features.forEach((feature) => {
+              if (typeof feature.geometry === "string") {
+                feature.geometry = JSON.parse(feature.geometry);
+              }
+            });
+            
+            map.addSource('flood_extent', {
+            'type': 'geojson',
+            'data': data
+        });
+
+              map.addLayer({
+                id: "flood_extent",
+                type: "fill",
+                source: "flood_extent",
+                layout: {},
+                paint: {
+                  "fill-color": "blue",
+                  "fill-opacity": 0.75,
+                },
+              });
+            }
+          );
+      }
+
+      document
+        .getElementById("toggleFloodExtent")
+        .addEventListener("change", (event) => {
+          if (event.target.checked) {
+            addFloodExtent();
+          } else {
+            map.removeLayer("flood_extent");
+            map.removeSource("flood_extent");
+          }
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flood Extent</title>
+</head>
+<body>
+    <h1>Flood Extent Data</h1>
+    <ul>
+        {% for geom in valid_geometries %}
+            <li>{{ geom }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
