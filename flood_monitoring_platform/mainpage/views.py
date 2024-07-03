@@ -4,17 +4,18 @@ import math
 import gzip
 import logging
 from django.shortcuts import render
+from psycopg2 import sql
 
 logger = logging.getLogger(__name__)
 
-def get_mvt(request, z, x, y):
+def get_mvt(request, layer, z, x, y):
     try:
         # Define the bounds of the tile
         tile_bounds = tile_to_bounds(x, y, z)
 
         # SQL Query
-        sql = """
-            SELECT ST_AsMVT(mvtgeom.*, 'flood_extent') FROM (
+        query = sql.SQL("""
+            SELECT ST_AsMVT(mvtgeom.*, %s) FROM (
                 SELECT
                     ST_AsMVTGeom(
                         ST_Transform(geom, 3857),
@@ -24,14 +25,16 @@ def get_mvt(request, z, x, y):
                         true
                     ) AS geom,
                     id
-                FROM flood.flood_aug
+                FROM flood.{}
                 WHERE ST_Intersects(geom, ST_SetSRID(ST_MakeEnvelope(%s, %s, %s, %s), 4326))
             ) AS mvtgeom;
-        """
+        """).format(sql.Identifier(layer))
+
+        params = [layer, tile_bounds[0], tile_bounds[1], tile_bounds[2], tile_bounds[3],
+                  tile_bounds[0], tile_bounds[1], tile_bounds[2], tile_bounds[3]]
 
         with connection.cursor() as cursor:
-            cursor.execute(sql, [tile_bounds[0], tile_bounds[1], tile_bounds[2], tile_bounds[3],
-                                 tile_bounds[0], tile_bounds[1], tile_bounds[2], tile_bounds[3]])
+            cursor.execute(query, params)
             tile = cursor.fetchone()[0]
 
             # Gzip compression
@@ -39,12 +42,14 @@ def get_mvt(request, z, x, y):
 
             response = HttpResponse(compressed_tile, content_type="application/x-protobuf")
             response['Content-Encoding'] = 'gzip'
-            
-            logger.info(f"MVT tile generated successfully for z={z}, x={x}, y={y}")
+
+            logger.info(f"MVT tile generated successfully for layer={layer}, z={z}, x={x}, y={y}")
             return response
+
     except Exception as e:
-        logger.error(f"Error generating MVT tile for z={z}, x={x}, y={y}: {str(e)}")
+        logger.error(f"Error generating MVT tile in {query.as_string(connection)} for layer={layer}, z={z}, x={x}, y={y}: {str(e)}")
         return HttpResponseServerError("Error generating MVT tile")
+
 
 def tile_to_bounds(x, y, z):
     n = 2.0 ** z
