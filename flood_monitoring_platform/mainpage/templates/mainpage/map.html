@@ -31,7 +31,15 @@
     <div id="controls">
       <h3>Toggle Layers</h3>
       <label>
-        <input type="checkbox" id="toggleFloodExtent" />
+        <input type="checkbox" id="toggleJuneFloodExtent" /> June Flood Extent
+      </label>
+      <br />
+      <label>
+        <input type="checkbox" id="toggleJulyFloodExtent" /> July Flood Extent
+      </label>
+      <br />
+      <label>
+        <input type="checkbox" id="toggleAugustFloodExtent" /> August Flood Extent
       </label>
     </div>
     <script>
@@ -39,19 +47,13 @@
         "pk.eyJ1IjoiYWxpaGFtemEtMTQiLCJhIjoiY2x4dHkzdHJ6MWhzOTJrcXdqcnFsYnU4dyJ9.LbRvUbNnNk2rUq13y-8gFQ";
       const map = new mapboxgl.Map({
         container: "map",
+        style: "mapbox://styles/mapbox/streets-v11",
         center: [69.3451, 30.3753],
         zoom: 4,
-        "wms-imagery": {
-          type: "raster",
-          tiles: [
-            "http://a.example.com/wms?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&width=256&height=256&layers=example",
-          ],
-          tileSize: 256,
-        },
       });
 
-      function addFloodExtent() {
-        fetch("/flood_extent/")
+      function addFloodExtent(url, sourceId, layerId, color) {
+        fetch(url)
           .then((response) => response.json())
           .then((data) => {
             // Parse the 'geometry' field if it's a string
@@ -60,36 +62,44 @@
                 feature.geometry = JSON.parse(feature.geometry);
               }
             });
-            
-            map.addSource('flood_extent', {
-            'type': 'geojson',
-            'data': data
-        });
+
+            if (!map.getSource(sourceId)) {
+              map.addSource(sourceId, {
+                type: "geojson",
+                data: data,
+              });
 
               map.addLayer({
-                id: "flood_extent",
+                id: layerId,
                 type: "fill",
-                source: "flood_extent",
+                source: sourceId,
                 layout: {},
                 paint: {
-                  "fill-color": "blue",
+                  "fill-color": color,
                   "fill-opacity": 0.75,
                 },
               });
             }
-          );
+          });
       }
 
-      document
-        .getElementById("toggleFloodExtent")
-        .addEventListener("change", (event) => {
+      function toggleLayer(checkboxId, url, sourceId, layerId, color) {
+        document.getElementById(checkboxId).addEventListener("change", (event) => {
           if (event.target.checked) {
-            addFloodExtent();
+            addFloodExtent(url, sourceId, layerId, color);
           } else {
-            map.removeLayer("flood_extent");
-            map.removeSource("flood_extent");
+            if (map.getLayer(layerId)) {
+              map.removeLayer(layerId);
+              map.removeSource(sourceId);
+            }
           }
         });
+      }
+
+      toggleLayer("toggleJuneFloodExtent", "/flood_extent/june/", "june_flood_extent", "june_flood_extent_layer", "blue");
+      toggleLayer("toggleJulyFloodExtent", "/flood_extent/july/", "july_flood_extent", "july_flood_extent_layer", "green");
+      toggleLayer("toggleAugustFloodExtent", "/flood_extent/august/", "august_flood_extent", "august_flood_extent_layer", "red");
+
     </script>
   </body>
 </html>

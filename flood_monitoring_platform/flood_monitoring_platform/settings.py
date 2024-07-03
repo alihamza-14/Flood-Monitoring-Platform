@@ -14,6 +14,18 @@ from pathlib import Path
 import ctypes
 import os
 
+# path for GDAL libraries
+if os.name == "nt":
+    VENV_BASE = os.environ["VIRTUAL_ENV"]
+    os.environ["PATH"] = (
+        os.path.join(VENV_BASE, "Lib\\site-packages\\osgeo") + ";" + os.environ["PATH"]
+    )
+    os.environ["PROJ_LIB"] = (
+        os.path.join(VENV_BASE, "Lib\\site-packages\\osgeo\\data\\proj")
+        + ";"
+        + os.environ["PATH"]
+    )
+
 # Ensure the correct GDAL path
 gdal_path = r'C:\OSGeo4W\bin\gdal308.dll'  # Update this path based on the actual DLL file name
 try:
@@ -22,8 +34,9 @@ except OSError as e:
     print(f"Error loading GDAL library: {e}")
 
 # Set GDAL environment variables
-os.environ['GDAL_DATA'] = r'C:\OSGeo4W\share\gdal'
-os.environ['PATH'] = r'C:\OSGeo4W\bin;' + os.environ['PATH']
+os.environ['GDAL_DATA'] = r'C:\Users\LAPTOP CLINIC\AppData\Local\Programs\Python\Python311\Lib\site-packages\osgeo\data\gdal'
+os.environ['PROJ_LIB'] = r'C:\Users\LAPTOP CLINIC\AppData\Local\Programs\Python\Python311\Lib\site-packages\osgeo\data\proj'
+
 
 # Set GDAL_LIBRARY_PATH
 GDAL_LIBRARY_PATH = r'C:\OSGeo4W\bin\gdal308.dll'  # Ensure this matches your GDAL version
@@ -96,9 +109,9 @@ WSGI_APPLICATION = 'flood_monitoring_platform.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'NDMA',
+        'NAME': 'Flood',
         'USER':'postgres',
-        'PASSWORD':'postgres',
+        'PASSWORD':'Mountain200',
         'HOST':'localhost',
         'PORT':'5432',
         # 'OPTIONS': {
