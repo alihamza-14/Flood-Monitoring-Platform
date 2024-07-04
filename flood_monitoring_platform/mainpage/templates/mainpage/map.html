@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flood Map</title>
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
-  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet" />
   <style>
     #map {
       position: absolute;
@@ -20,6 +20,15 @@
       background: white;
       padding: 10px;
       border-radius: 5px;
+      z-index: 2; /* Ensure controls appear above the map */
+    }
+    #sidebar {
+      position: absolute;
+      top: 50px;
+      left: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
       z-index: 1; /* Ensure controls appear above the map */
     }
   </style>
@@ -27,22 +36,37 @@
 <body>
   <div id="map"></div>
   <div id="controls">
+    <button id="toggleAnimation">Start Animation</button>
+  </div>
+  <div id="sidebar">
     <h3>Toggle Layers</h3>
     <label>
-      <input type="checkbox" class="toggleLayer" data-layer="flood_june" data-color="blue">
-      Show June
-    </label><br>
+      <input type="checkbox" class="toggleLayer" data-layer="flood_june" data-color="blue" />
+      Show June 
+    </label><br />
     <label>
-      <input type="checkbox" class="toggleLayer" data-layer="flood_july" data-color="green">
-      Show July
-    </label><br>
+      <input type="checkbox" class="toggleLayer" data-layer="flood_july" data-color="green" />
+      Show July 
+    </label><br />
     <label>
-      <input type="checkbox" class="toggleLayer" data-layer="flood_aug" data-color="orange">
-      Show August
-    </label><br>
+      <input type="checkbox" class="toggleLayer" data-layer="flood_aug" data-color="orange" />
+      Show August 
+    </label><br />
     <label>
-      <input type="checkbox" class="toggleLayer" data-layer="flood_sep" data-color="red">
+      <input type="checkbox" class="toggleLayer" data-layer="flood_sep" data-color="red" />
       Show September
+    </label><br />
+    <label>
+      <input type="checkbox" class="toggleAdminLayer" data-layer="pak_adm0" data-width="3.5" />
+      National Boundaries
+    </label><br />
+    <label>
+      <input type="checkbox" class="toggleAdminLayer" data-layer="pak_adm1" data-width="1.5" />
+      Provincial Boundaries
+    </label><br />
+    <label>
+      <input type="checkbox" class="toggleAdminLayer" data-layer="pak_adm2" data-width="0.5" />
+      District Boundaries
     </label>
   </div>
 
@@ -51,9 +75,68 @@
 
     const map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [69.3451, 30.3753],
-      zoom: 4
+      style: 'mapbox://styles/mapbox/streets-v9',
+      projection: 'globe',
+      zoom: 7,
+      center: [73.0479, 33.6844], // Initial center of Islamabad
+    });
+    map.addControl(new mapboxgl.NavigationControl());
+    map.on('style.load', () => {
+      map.setFog({}); // Set the default atmosphere style
+    });
+
+    // Define the coordinates for Islamabad and Karachi
+    const islamabad = [73.0479, 33.6844]; // Islamabad
+    const karachi = [67.0011, 24.8607]; // Karachi
+
+    let userInteracting = false;
+    let animationEnabled = false;
+
+    function moveMap(toKarachi) {
+      if (!animationEnabled) return;
+      const target = toKarachi ? karachi : islamabad;
+      map.easeTo({
+        center: target,
+        duration: 20000, // 20 seconds duration
+        easing: (t) => t,
+        essential: true, // Essential ensures this animation gets played even if the user has set prefers-reduced-motion
+        onComplete: function () {
+          if (!userInteracting) {
+            // Repeat the animation in the opposite direction
+            setTimeout(() => moveMap(!toKarachi), 1000); // Added a delay of 1 second before moving back
+          }
+        },
+      });
+    }
+
+    // Pause moving on interaction
+    map.on('mousedown', () => {
+      userInteracting = true;
+    });
+    map.on('dragstart', () => {
+      userInteracting = true;
+    });
+
+    // Resume moving after interaction
+    map.on('mouseup', () => {
+      userInteracting = false;
+      if (animationEnabled) {
+        moveMap(map.getCenter().lat > (islamabad[1] + karachi[1]) / 2);
+      }
+    });
+    map.on('dragend', () => {
+      userInteracting = false;
+      if (animationEnabled) {
+        moveMap(map.getCenter().lat > (islamabad[1] + karachi[1]) / 2);
+      }
+    });
+
+    document.getElementById('toggleAnimation').addEventListener('click', function () {
+      animationEnabled = !animationEnabled;
+      this.textContent = animationEnabled ? 'Stop Animation' : 'Start Animation';
+      if (animationEnabled) {
+        moveMap(true); // Start the initial movement towards Karachi
+      }
     });
 
     function addFloodExtent(layer, color) {
@@ -61,7 +144,7 @@
         type: 'vector',
         tiles: [`http://127.0.0.1:8000/get_mvt/${layer}/{z}/{x}/{y}/`], // Adjust URL to match your server endpoint
         minzoom: 0,
-        maxzoom: 14
+        maxzoom: 14,
       });
 
       map.addLayer({
@@ -72,8 +155,75 @@
         layout: {},
         paint: {
           'fill-color': color,
-          'fill-opacity': 0.75
-        }
+          'fill-opacity': 0.75,
+        },
+      });
+
+      map.on('click', layer, function (e) {
+        const coordinates = e.lngLat;
+        const properties = e.features[0].properties;
+
+        // Create a popup and set its content to feature properties
+        new mapboxgl.Popup()
+          .setLngLat(coordinates)
+          .setHTML(
+            `<strong>${layer}</strong><br><p><strong>Flood Type:</strong>${properties.flood_type}</p>`
+          )
+          .addTo(map);
+      });
+
+      // Change the cursor to pointer when the mouse is over the layer
+      map.on('mouseenter', layer, function () {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+
+      // Change the cursor back to default when the mouse leaves the layer
+      map.on('mouseleave', layer, function () {
+        map.getCanvas().style.cursor = '';
+      });
+    }
+
+    function addAdminLayer(layer, width) {
+      map.addSource(layer, {
+        type: 'vector',
+        tiles: [`http://127.0.0.1:8000/get_admin_mvt/${layer}/{z}/{x}/{y}/`], // Adjust URL to match your server endpoint
+        minzoom: 0,
+        maxzoom: 14,
+      });
+
+      map.addLayer({
+        id: layer,
+        type: 'line',
+        source: layer,
+        'source-layer': layer,
+        layout: {},
+        paint: {
+          'line-color': 'green',
+          'line-width': parseFloat(width),
+        },
+      });
+
+      map.on('click', layer, function (e) {
+        const coordinates = e.lngLat;
+        const properties = e.features[0].properties;
+
+        // Create a popup and set its content to feature properties
+        new mapboxgl.Popup()
+          .setLngLat(coordinates)
+          .setHTML(
+            `<strong>${layer}</strong><br><p><strong>Admin Name:</strong>${properties.admin_name}</p><p><strong>Admin Type:</strong>${properties.admin_type}</p>`
+          )
+          .addTo(map);
+      });
+
+      // Change the cursor to pointer when the mouse is over the layer
+      map.on('mouseenter', layer, function () {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+
+      // Change the cursor back to default when the mouse leaves the layer
+      map.on('mouseleave', layer, function () {
+        map.getCanvas().style.cursor = '';
       });
     }
 
@@ -83,6 +233,19 @@
         const color = this.dataset.color;
         if (this.checked) {
           addFloodExtent(layer, color);
+        } else {
+          map.removeLayer(layer);
+          map.removeSource(layer);
+        }
+      });
+    });
+
+    document.querySelectorAll('.toggleAdminLayer').forEach(function (checkbox) {
+      checkbox.addEventListener('change', function () {
+        const layer = this.dataset.layer;
+        const width = this.dataset.width;
+        if (this.checked) {
+          addAdminLayer(layer, width);
         } else {
           map.removeLayer(layer);
           map.removeSource(layer);
