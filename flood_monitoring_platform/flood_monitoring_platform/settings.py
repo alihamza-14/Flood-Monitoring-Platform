@@ -11,6 +11,22 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import ctypes
+import os
+
+# Ensure the correct GDAL path
+gdal_path = r'C:\OSGeo4W\bin\gdal308.dll'  # Update this path based on the actual DLL file name
+try:
+    ctypes.CDLL(gdal_path)
+except OSError as e:
+    print(f"Error loading GDAL library: {e}")
+
+# Set GDAL environment variables
+os.environ['GDAL_DATA'] = r'C:\OSGeo4W\share\gdal'
+os.environ['PATH'] = r'C:\OSGeo4W\bin;' + os.environ['PATH']
+
+# Set GDAL_LIBRARY_PATH
+GDAL_LIBRARY_PATH = r'C:\OSGeo4W\bin\gdal308.dll'  # Ensure this matches your GDAL version
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,7 +53,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
+    'rest_framework',
+    'mainpage',
+    'corsheaders',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    # Add other allowed origins if needed
+]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -47,6 +73,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'flood_monitoring_platform.urls'
@@ -54,7 +81,9 @@ ROOT_URLCONF = 'flood_monitoring_platform.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'mainpage', 'templates'),  
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -75,8 +104,16 @@ WSGI_APPLICATION = 'flood_monitoring_platform.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'NDMA',
+        'USER':'postgres',
+        'PASSWORD':'postgres',
+        'HOST':'localhost',
+        'PORT':'5432',
+        # 'OPTIONS': {
+        #     'options':'-c search_path = flood,public'
+        # }
+        
     }
 }
 
