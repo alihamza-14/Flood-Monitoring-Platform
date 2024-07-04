@@ -3,6 +3,7 @@ from django.contrib.gis.db import models
 # Create your models here.
 
 class FloodExtent(models.Model):
+    name = models.CharField(max_length=100)
     geom = models.PolygonField()
 
     def __str__(self):
@@ -12,4 +13,4 @@ class FloodExtent(models.Model):
         return self.geom.area
 
     class Meta:
-        db_table = 'june'
+        db_table = 'sep'
