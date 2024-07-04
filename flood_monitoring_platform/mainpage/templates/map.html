@@ -51,7 +51,7 @@
       });
 
       function addFloodExtent() {
-        fetch("/flood_extent/")
+        fetch("http://127.0.0.1:8000/flood_extent/")
           .then((response) => response.json())
           .then((data) => {
             // Parse the 'geometry' field if it's a string

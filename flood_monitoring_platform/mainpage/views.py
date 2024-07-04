@@ -30,4 +30,4 @@ def flood_extent(request):
 
 
 def map_view(request): 
-    return render(request,'mainpage/map.html')
+    return render(request,'map.html')
