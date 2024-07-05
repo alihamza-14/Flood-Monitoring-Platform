@@ -145,6 +145,43 @@
         />
         September Roads
       </label>
+      <h4>Affected Schools</h4>
+      <label>
+        <input
+          type="checkbox"
+          class="toggleSchoolsLayer"
+          data-layer="school_june"
+          data-color="Blue"
+        />
+        June Schools </label
+      ><br />
+      <label>
+        <input
+          type="checkbox"
+          class="toggleSchoolsLayer"
+          data-layer="school_july"
+          data-color="pink"
+        />
+        July Schools </label
+      ><br />
+      <label>
+        <input
+          type="checkbox"
+          class="toggleSchoolsLayer"
+          data-layer="school_aug"
+          data-color="orange"
+        />
+        August Schools
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          class="toggleSchoolsLayer"
+          data-layer="school_sept"
+          data-color="red"
+        />
+        September Schools
+      </label>
     </div>
 
     <script>
@@ -303,7 +340,7 @@
         map.on("click", layer, function (e) {
           const coordinates = e.lngLat;
           const properties = e.features[0].properties;
-          console.log(properties.admin_name)
+          console.log(properties.admin_name);
 
           // Create a popup and set its content to feature properties
           new mapboxgl.Popup()
@@ -348,13 +385,60 @@
         map.on("click", layer, function (e) {
           const coordinates = e.lngLat;
           const properties = e.features[0].properties;
-          console.log(properties)
+          console.log(properties);
 
           // Create a popup and set its content to feature properties
           new mapboxgl.Popup()
             .setLngLat(coordinates)
             .setHTML(
               `<strong>${layer}</strong><br><p><strong>Road Name:</strong>${properties.road_name}</p><p><strong>Road Type:</strong>${properties.road_type}</p>`
+            )
+            .addTo(map);
+        });
+
+        // Change the cursor to pointer when the mouse is over the layer
+        map.on("mouseenter", layer, function () {
+          map.getCanvas().style.cursor = "pointer";
+        });
+
+        // Change the cursor back to default when the mouse leaves the layer
+        map.on("mouseleave", layer, function () {
+          map.getCanvas().style.cursor = "";
+        });
+      }
+
+      function addSchoolsLayer(layer, color) {
+        map.addSource(layer, {
+          type: "vector",
+          tiles: [`http://127.0.0.1:8000/get_admin_mvt/${layer}/{z}/{x}/{y}/`], // Adjust URL to match your server endpoint
+          minzoom: 0,
+          maxzoom: 14,
+        });
+
+        map.addLayer({
+          id: layer,
+          type: "circle",
+          source: layer,
+          "source-layer": layer,
+          layout: {},
+          paint: {
+            "circle-color": color,
+            "circle-radius": 5,
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#000000",
+          },
+        });
+
+        map.on("click", layer, function (e) {
+          const coordinates = e.lngLat;
+          const properties = e.features[0].properties;
+          console.log(properties);
+
+          // Create a popup and set its content to feature properties
+          new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(
+              `<strong>${layer}</strong><br><p><strong>Name:</strong> ${properties.name}</p><p><strong>Type:</strong> ${properties.type}</p>`
             )
             .addTo(map);
         });
@@ -405,6 +489,20 @@
             const color = this.dataset.color;
             if (this.checked) {
               addRoadsLayer(layer, color);
+            } else {
+              map.removeLayer(layer);
+              map.removeSource(layer);
+            }
+          });
+        });
+      document
+        .querySelectorAll(".toggleSchoolsLayer")
+        .forEach(function (checkbox) {
+          checkbox.addEventListener("change", function () {
+            const layer = this.dataset.layer;
+            const color = this.dataset.color;
+            if (this.checked) {
+              addSchoolsLayer(layer, color);
             } else {
               map.removeLayer(layer);
               map.removeSource(layer);
