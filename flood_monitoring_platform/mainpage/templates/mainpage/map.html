@@ -41,6 +41,34 @@
       <label>
         <input type="checkbox" id="toggleAugustFloodExtent" /> August Flood Extent
       </label>
+      <br />
+      <label>
+        <input type="checkbox" id="toggleSettlementsaug" /> Settlements August
+      </label>
+      <label>
+        <input type="checkbox" id="toggleSettlementsjune" /> Settlements June
+      </label>
+      <label>
+        <input type="checkbox" id="toggleSettlementsjuly" /> Settlements July
+      </label>
+      <label>
+        <input type="checkbox" id="toggleSettlementssept" /> Settlements Sept
+      </label>
+      <label>
+        <input type="checkbox" id="toggleAirportjune" /> Airport June
+      </label>
+      <label>
+        <input type="checkbox" id="toggleAirportjuly" /> Airport July
+      </label>
+      <label>
+        <input type="checkbox" id="toggleAirportaug" /> Airport Aug
+      </label>
+      <label>
+        <input type="checkbox" id="toggleAirportsept" /> Airport Sept
+      </label>
+      <label>
+        <input type="checkbox" id="togglePak" /> Pak Boundary
+      </label>
     </div>
     <script>
       mapboxgl.accessToken =
@@ -83,6 +111,71 @@
           });
       }
 
+      function addLine(url, sourceId, layerId, color) {
+        fetch(url)
+          .then((response) => response.json())
+          .then((data) => {
+            // Parse the 'geometry' field if it's a string
+            data.features.forEach((feature) => {
+              if (typeof feature.geometry === "string") {
+                feature.geometry = JSON.parse(feature.geometry);
+              }
+            });
+
+            if (!map.getSource(sourceId)) {
+              map.addSource(sourceId, {
+                type: "geojson",
+                data: data,
+              });
+
+              map.addLayer({
+                id: layerId,
+                type: "line",
+                source: sourceId,
+                layout: {},
+                paint: {
+                  "line-color": color,
+                  "fill-width": 5,
+                },
+              });
+            }
+          });
+      }
+
+
+      function addPoints(url, sourceId, layerId, color) {
+        fetch(url)
+          .then((response) => response.json())
+          .then((data) => {
+            // Parse the 'geometry' field if it's a string
+            data.features.forEach((feature) => {
+              if (typeof feature.geometry === "string") {
+                feature.geometry = JSON.parse(feature.geometry);
+              }
+            });
+
+            if (!map.getSource(sourceId)) {
+              map.addSource(sourceId, {
+                type: "geojson",
+                data: data,
+              });
+
+              map.addLayer({
+                id: layerId,
+                type: "circle",
+                source: sourceId,
+                layout: {},
+                paint: {
+                  "circle-color": color,
+                  "circle-radius": 2,
+                  "circle-stroke-width": 1,
+                  "circle-stroke-color": "black",
+                },
+              });
+            }
+          });
+      }
+
       function toggleLayer(checkboxId, url, sourceId, layerId, color) {
         document.getElementById(checkboxId).addEventListener("change", (event) => {
           if (event.target.checked) {
@@ -95,10 +188,48 @@
           }
         });
       }
+      function toggleLineLayer(checkboxId, url, sourceId, layerId, color) {
+        document.getElementById(checkboxId).addEventListener("change", (event) => {
+          if (event.target.checked) {
+            addLine(url, sourceId, layerId, color);
+          } else {
+            if (map.getLayer(layerId)) {
+              map.removeLayer(layerId);
+              map.removeSource(sourceId);
+            }
+          }
+        });
+      }
+
+      function togglePointsLayer(checkboxId, url, sourceId, layerId, color) {
+        document.getElementById(checkboxId).addEventListener("change", (event) => {
+          if (event.target.checked) {
+            addPoints(url, sourceId, layerId, color);
+          } else {
+            if (map.getLayer(layerId)) {
+              map.removeLayer(layerId);
+              map.removeSource(sourceId);
+            }
+          }
+        });
+      }
 
       toggleLayer("toggleJuneFloodExtent", "/flood_extent/june/", "june_flood_extent", "june_flood_extent_layer", "blue");
       toggleLayer("toggleJulyFloodExtent", "/flood_extent/july/", "july_flood_extent", "july_flood_extent_layer", "green");
       toggleLayer("toggleAugustFloodExtent", "/flood_extent/august/", "august_flood_extent", "august_flood_extent_layer", "red");
+
+      togglePointsLayer("toggleSettlementsaug", "/settlements_aug/", "settlements_aug", "settlements_aug_layer", "orange");
+      togglePointsLayer("toggleSettlementsjune", "/settlements_june/", "settlements_june", "settlements_june_layer", "yellow");
+      togglePointsLayer("toggleSettlementsjuly", "/settlements_july/", "settlements_july", "settlements_july_layer", "pink");
+      togglePointsLayer("toggleSettlementssept", "/settlements_sept/", "settlements_sept", "settlements_sept_layer", "cyan");
+
+      togglePointsLayer("toggleAirportjune", "/airport_june/", "airport_june", "airport_june_layer", "blue");
+      togglePointsLayer("toggleAirportjuly", "/airport_july/", "airport_july", "airport_july_layer", "blue");
+      togglePointsLayer("toggleAirportaug", "/airport_aug/", "airport_aug", "airport_aug_layer", "blue");
+      togglePointsLayer("toggleAirportsept", "/airport_sept/", "airport_sept", "airport_sept_layer", "blue");
+
+      toggleLineLayer("togglePak", "/pak/", "pak", "pak_layer", "red");
+
 
     </script>
   </body>
