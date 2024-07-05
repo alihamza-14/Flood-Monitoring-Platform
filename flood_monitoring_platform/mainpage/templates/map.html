@@ -21,19 +21,61 @@
       padding: 10px;
       border-radius: 5px;
     }
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      padding: 10px;
+    }
+    .dropdown-content input {
+      margin: 5px;
+    }
+    .dropdown-content label {
+      display: block;
+      padding: 5px 0;
+    }
+    .dropbtn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .dropbtn:after {
+      content: '\25BC';
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="controls">
     <h3>Toggle Layers</h3>
-    <label>
-      <input type="checkbox" id="toggleFloodExtent" /> Flood Extents
-    </label>
-    <div id="floodButtons" style="display: none; margin-top: 10px;">
-      <button class="toggleLayer" data-layer="june">June</button>
-      <button class="toggleLayer" data-layer="september">September</button>
-      <!-- Add more buttons for other months or layers -->
+    <div class="dropdown">
+      <button class="dropbtn" onclick="toggleDropdown()">Flood Extents</button>
+      <div class="dropdown-content" id="dropdown-content">
+        <label>
+          <input type="checkbox" class="toggleLayer" data-layer="june"> June
+        </label>
+        <label>
+          <input type="checkbox" class="toggleLayer" data-layer="july"> July
+        </label>
+        <label>
+          <input type="checkbox" class="toggleLayer" data-layer="august"> August
+        </label>
+        <label>
+          <input type="checkbox" class="toggleLayer" data-layer="september"> September
+        </label>
+      </div>
     </div>
   </div>
   <script>
@@ -43,6 +85,13 @@
       center: [69.3451, 30.3753],
       zoom: 4
     });
+
+    const layerColors = {
+      june: "blue",
+      july: "green",
+      august: "yellow",
+      september: "red"
+    };
 
     function addFloodExtent(layerName) {
       fetch(`http://127.0.0.1:8000/flood_extent/?month=${layerName}`)
@@ -72,7 +121,31 @@
         });
     }
 
-    document.getElementById("toggleFloodExtent").addEventListener("change", event => {
+
+    document.querySelectorAll(".toggleLayer").forEach(checkbox => {
+      checkbox.addEventListener("change", () => {
+        const layerName = checkbox.getAttribute("data-layer");
+        const isActive = checkbox.checked;
+
+        if (isActive) {
+          addFloodExtent(layerName);
+        } else {
+          map.removeLayer(`${layerName}_flood_extent`);
+          map.removeSource(`${layerName}_flood_extent`);
+        }
+      });
+    });
+    
+    function toggleDropdown() {
+      const dropdownContent = document.getElementById("dropdown-content");
+      if (dropdownContent.style.display === "block") {
+        dropdownContent.style.display = "none";
+      } else {
+        dropdownContent.style.display = "block";
+      }
+    }
+
+    {% comment %} document.getElementById("toggleFloodExtent").addEventListener("change", event => {
       const floodButtons = document.getElementById("floodButtons");
       floodButtons.style.display = event.target.checked ? "block" : "none";
 
@@ -99,7 +172,7 @@
           button.classList.remove("active");
         }
       });
-    });
+    }); {% endcomment %}
 
     function getRandomColor() {
       return '#' + Math.floor(Math.random() * 16777215).toString(16);

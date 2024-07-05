@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.core.serializers import serialize
-from .models import JuneFloodExtent, SeptemberFloodExtent
+from .models import JuneFloodExtent, SeptemberFloodExtent, JulyFloodExtent, AugustFloodExtent
 from django.contrib.gis.geos import GEOSGeometry
 
 def flood_extent(request):
@@ -12,6 +12,10 @@ def flood_extent(request):
                 flood_extents = JuneFloodExtent.objects.all()
             elif month == 'september':
                 flood_extents = SeptemberFloodExtent.objects.all()
+            elif month == 'july':
+                flood_extents = JulyFloodExtent.objects.all()
+            elif month == 'august':
+                flood_extents = AugustFloodExtent.objects.all()
             else:
                 return JsonResponse({'error': 'Invalid month parameter'}, status=400)
         else:
