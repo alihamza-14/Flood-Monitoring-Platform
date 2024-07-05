@@ -1,95 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flood Map</title>
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
-    <link
-      href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css"
-      rel="stylesheet"
-    />
-    <style>
-      #map {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
-      }
-      #controls {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: white;
-        padding: 10px;
-        border-radius: 5px;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="map"></div>
-    <div id="controls">
-      <h3>Toggle Layers</h3>
-      <label>
-        <input type="checkbox" id="toggleFloodExtent" />
-      </label>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flood Map</title>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="controls">
+    <h3>Toggle Layers</h3>
+    <label>
+      <input type="checkbox" id="toggleFloodExtent" /> Flood Extents
+    </label>
+    <div id="floodButtons" style="display: none; margin-top: 10px;">
+      <button class="toggleLayer" data-layer="june">June</button>
+      <button class="toggleLayer" data-layer="september">September</button>
+      <!-- Add more buttons for other months or layers -->
     </div>
-    <script>
-      mapboxgl.accessToken =
-        "pk.eyJ1IjoiYWxpaGFtemEtMTQiLCJhIjoiY2x4dHkzdHJ6MWhzOTJrcXdqcnFsYnU4dyJ9.LbRvUbNnNk2rUq13y-8gFQ";
-      const map = new mapboxgl.Map({
-        container: "map",
-        center: [69.3451, 30.3753],
-        zoom: 4,
-        "wms-imagery": {
-          type: "raster",
-          tiles: [
-            "http://a.example.com/wms?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&width=256&height=256&layers=example",
-          ],
-          tileSize: 256,
-        },
-      });
+  </div>
+  <script>
+    mapboxgl.accessToken = "pk.eyJ1IjoiYWxpaGFtemEtMTQiLCJhIjoiY2x4dHkzdHJ6MWhzOTJrcXdqcnFsYnU4dyJ9.LbRvUbNnNk2rUq13y-8gFQ";
+    const map = new mapboxgl.Map({
+      container: "map",
+      center: [69.3451, 30.3753],
+      zoom: 4
+    });
 
-      function addFloodExtent() {
-        fetch("http://127.0.0.1:8000/flood_extent/")
-          .then((response) => response.json())
-          .then((data) => {
-            // Parse the 'geometry' field if it's a string
-            data.features.forEach((feature) => {
-              if (typeof feature.geometry === "string") {
-                feature.geometry = JSON.parse(feature.geometry);
-              }
-            });
-            
-            map.addSource('flood_extent', {
-            'type': 'geojson',
-            'data': data
-        });
-
-              map.addLayer({
-                id: "flood_extent",
-                type: "fill",
-                source: "flood_extent",
-                layout: {},
-                paint: {
-                  "fill-color": "blue",
-                  "fill-opacity": 0.75,
-                },
-              });
+    function addFloodExtent(layerName) {
+      fetch(`http://127.0.0.1:8000/flood_extent/?month=${layerName}`)
+        .then(response => response.json())
+        .then(data => {
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === "string") {
+              feature.geometry = JSON.parse(feature.geometry);
             }
-          );
-      }
+          });
 
-      document
-        .getElementById("toggleFloodExtent")
-        .addEventListener("change", (event) => {
-          if (event.target.checked) {
-            addFloodExtent();
-          } else {
-            map.removeLayer("flood_extent");
-            map.removeSource("flood_extent");
-          }
+          map.addSource(`${layerName}_flood_extent`, {
+            type: "geojson",
+            data: data
+          });
+
+          map.addLayer({
+            id: `${layerName}_flood_extent`,
+            type: "fill",
+            source: `${layerName}_flood_extent`,
+            layout: {},
+            paint: {
+              "fill-color": getRandomColor(),
+              "fill-opacity": 0.75
+            }
+          });
         });
-    </script>
-  </body>
+    }
+
+    document.getElementById("toggleFloodExtent").addEventListener("change", event => {
+      const floodButtons = document.getElementById("floodButtons");
+      floodButtons.style.display = event.target.checked ? "block" : "none";
+
+      if (!event.target.checked) {
+        document.querySelectorAll(".toggleLayer").forEach(button => {
+          const layerName = button.getAttribute("data-layer");
+          map.removeLayer(`${layerName}_flood_extent`);
+          map.removeSource(`${layerName}_flood_extent`);
+        });
+      }
+    });
+
+    document.querySelectorAll(".toggleLayer").forEach(button => {
+      button.addEventListener("click", () => {
+        const layerName = button.getAttribute("data-layer");
+        const isActive = button.classList.contains("active");
+
+        if (!isActive) {
+          addFloodExtent(layerName);
+          button.classList.add("active");
+        } else {
+          map.removeLayer(`${layerName}_flood_extent`);
+          map.removeSource(`${layerName}_flood_extent`);
+          button.classList.remove("active");
+        }
+      });
+    });
+
+    function getRandomColor() {
+      return '#' + Math.floor(Math.random() * 16777215).toString(16);
+    }
+  </script>
+</body>
 </html>
