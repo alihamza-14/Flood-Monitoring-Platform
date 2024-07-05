@@ -34,6 +34,16 @@
         border-radius: 5px;
         z-index: 1; /* Ensure controls appear above the map */
       }
+      details summary h4 {
+        display: inline-block;
+        cursor: pointer;
+      }
+      details[open] summary h4 {
+        font-weight: bold;
+      }
+      details summary::-webkit-details-marker {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -43,145 +53,277 @@
     </div>
     <div id="sidebar">
       <h3>Toggle Layers</h3>
-      <h4>Flood Extent</h4>
-      <label>
-        <input
-          type="checkbox"
-          class="toggleLayer"
-          data-layer="flood_june"
-          data-color="blue"
-        />
-        Show June </label
-      ><br />
-      <label>
-        <input
-          type="checkbox"
-          class="toggleLayer"
-          data-layer="flood_july"
-          data-color="pink"
-        />
-        Show July </label
-      ><br />
-      <label>
-        <input
-          type="checkbox"
-          class="toggleLayer"
-          data-layer="flood_aug"
-          data-color="orange"
-        />
-        Show August </label
-      ><br />
-      <label>
-        <input
-          type="checkbox"
-          class="toggleLayer"
-          data-layer="flood_sep"
-          data-color="red"
-        />
-        Show September </label
-      ><br />
-      <h4>Admin Boundaries</h4>
-      <label>
-        <input
-          type="checkbox"
-          class="toggleAdminLayer"
-          data-layer="pak_adm0"
-          data-width="3.5"
-        />
-        National Boundaries </label
-      ><br />
-      <label>
-        <input
-          type="checkbox"
-          class="toggleAdminLayer"
-          data-layer="pak_adm1"
-          data-width="1.5"
-        />
-        Provincial Boundaries </label
-      ><br />
-      <label>
-        <input
-          type="checkbox"
-          class="toggleAdminLayer"
-          data-layer="pak_adm2"
-          data-width="0.5"
-        />
-        District Boundaries
-      </label>
-      <h4>Affected Roads</h4>
-      <label>
-        <input
-          type="checkbox"
-          class="toggleRoadsLayer"
-          data-layer="june_roads"
-          data-color="Blue"
-        />
-        June Roads </label
-      ><br />
-      <label>
-        <input
-          type="checkbox"
-          class="toggleRoadsLayer"
-          data-layer="july_roads"
-          data-color="pink"
-        />
-        July Roads </label
-      ><br />
-      <label>
-        <input
-          type="checkbox"
-          class="toggleRoadsLayer"
-          data-layer="aug_roads"
-          data-color="orange"
-        />
-        August Roads
-      </label>
-      <label>
-        <input
-          type="checkbox"
-          class="toggleRoadsLayer"
-          data-layer="sept_roads"
-          data-color="red"
-        />
-        September Roads
-      </label>
-      <h4>Affected Schools</h4>
-      <label>
-        <input
-          type="checkbox"
-          class="toggleSchoolsLayer"
-          data-layer="school_june"
-          data-color="Blue"
-        />
-        June Schools </label
-      ><br />
-      <label>
-        <input
-          type="checkbox"
-          class="toggleSchoolsLayer"
-          data-layer="school_july"
-          data-color="pink"
-        />
-        July Schools </label
-      ><br />
-      <label>
-        <input
-          type="checkbox"
-          class="toggleSchoolsLayer"
-          data-layer="school_aug"
-          data-color="orange"
-        />
-        August Schools
-      </label>
-      <label>
-        <input
-          type="checkbox"
-          class="toggleSchoolsLayer"
-          data-layer="school_sept"
-          data-color="red"
-        />
-        September Schools
-      </label>
+
+      <details>
+        <summary><h4>Admin Boundaries</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="toggleAdminLayer"
+            data-layer="pak_adm0"
+            data-width="3.5"
+          />
+          National Boundaries </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleAdminLayer"
+            data-layer="pak_adm1"
+            data-width="1.5"
+          />
+          Provincial Boundaries </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleAdminLayer"
+            data-layer="pak_adm2"
+            data-width="0.5"
+          />
+          District Boundaries
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Flood Extent</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="toggleLayer"
+            data-layer="flood_june"
+            data-color="blue"
+          />
+          Show June </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleLayer"
+            data-layer="flood_july"
+            data-color="pink"
+          />
+          Show July </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleLayer"
+            data-layer="flood_aug"
+            data-color="orange"
+          />
+          Show August </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleLayer"
+            data-layer="flood_sep"
+            data-color="red"
+          />
+          Show September
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Affected Airports</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="airport_june"
+            data-icon="../../static/icons/airport.png"
+          />
+          June Airports </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="airport_july"
+            data-icon="../../static/icons/airport.png"
+          />
+          July Airports </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="airport_aug"
+            data-icon="../../static/icons/airport.png"
+          />
+          August Airports </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="airport_sept"
+            data-icon="../../static/icons/airport.png"
+          />
+          September Airports
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Affected Roads</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="toggleRoadsLayer"
+            data-layer="june_roads"
+            data-color="Blue"
+          />
+          June Roads </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleRoadsLayer"
+            data-layer="july_roads"
+            data-color="pink"
+          />
+          July Roads </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleRoadsLayer"
+            data-layer="aug_roads"
+            data-color="orange"
+          />
+          August Roads </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleRoadsLayer"
+            data-layer="sept_roads"
+            data-color="red"
+          />
+          September Roads
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Affected Schools</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="school_june"
+            data-icon="../../static/icons/school.png"
+          />
+          June Schools </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="school_july"
+            data-icon="../../static/icons/school.png"
+          />
+          July Schools </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="school_aug"
+            data-icon="../../static/icons/school.png"
+          />
+          August Schools </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="school_sept"
+            data-icon="../../static/icons/school.png"
+          />
+          September Schools
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Affected Settlements</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="settlements_june"
+            data-icon="../../static/icons/settlement.png"
+          />
+          June Settlements </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="settlements_july"
+            data-icon="../../static/icons/settlement.png"
+          />
+          July Settlements </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="settlements_aug"
+            data-icon="../../static/icons/settlement.png"
+          />
+          August Settlements </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="settlements_sept"
+            data-icon="../../static/icons/settlement.png"
+          />
+          September Settlements
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Affected Health</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="health_june"
+            data-icon="../../static/icons/health.png"
+          />
+          June Health </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="health_july"
+            data-icon="../../static/icons/health.png"
+          />
+          July Health </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="health_aug"
+            data-icon="../../static/icons/health.png"
+          />
+          August Health </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="health_sept"
+            data-icon="../../static/icons/health.png"
+          />
+          September Health
+        </label>
+      </details>
     </div>
 
     <script>
@@ -407,7 +549,7 @@
         });
       }
 
-      function addSchoolsLayer(layer, color) {
+      function addPointsLayer(layer, icon) {
         map.addSource(layer, {
           type: "vector",
           tiles: [`http://127.0.0.1:8000/get_admin_mvt/${layer}/{z}/{x}/{y}/`], // Adjust URL to match your server endpoint
@@ -415,42 +557,48 @@
           maxzoom: 14,
         });
 
-        map.addLayer({
-          id: layer,
-          type: "circle",
-          source: layer,
-          "source-layer": layer,
-          layout: {},
-          paint: {
-            "circle-color": color,
-            "circle-radius": 5,
-            "circle-stroke-width": 1,
-            "circle-stroke-color": "#000000",
-          },
-        });
+        // Add the icon image to the map's style
+        map.loadImage(icon, (error, image) => {
+          if (error) throw error;
+          if (!map.hasImage(layer + "-icon")) {
+            map.addImage(layer + "-icon", image);
+          }
 
-        map.on("click", layer, function (e) {
-          const coordinates = e.lngLat;
-          const properties = e.features[0].properties;
-          console.log(properties);
+          map.addLayer({
+            id: layer,
+            type: "symbol",
+            source: layer,
+            "source-layer": layer,
+            layout: {
+              "icon-image": layer + "-icon",
+              "icon-size": 0.05, // Adjust the icon size as needed
+              "icon-allow-overlap": true,
+            },
+          });
 
-          // Create a popup and set its content to feature properties
-          new mapboxgl.Popup()
-            .setLngLat(coordinates)
-            .setHTML(
-              `<strong>${layer}</strong><br><p><strong>Name:</strong> ${properties.name}</p><p><strong>Type:</strong> ${properties.type}</p>`
-            )
-            .addTo(map);
-        });
+          map.on("click", layer, function (e) {
+            const coordinates = e.lngLat;
+            const properties = e.features[0].properties;
+            console.log(properties);
 
-        // Change the cursor to pointer when the mouse is over the layer
-        map.on("mouseenter", layer, function () {
-          map.getCanvas().style.cursor = "pointer";
-        });
+            // Create a popup and set its content to feature properties
+            new mapboxgl.Popup()
+              .setLngLat(coordinates)
+              .setHTML(
+                `<strong>${layer}</strong><br><p><strong>Name:</strong> ${properties.name}</p><p><strong>Type:</strong> ${properties.type}</p>`
+              )
+              .addTo(map);
+          });
 
-        // Change the cursor back to default when the mouse leaves the layer
-        map.on("mouseleave", layer, function () {
-          map.getCanvas().style.cursor = "";
+          // Change the cursor to pointer when the mouse is over the layer
+          map.on("mouseenter", layer, function () {
+            map.getCanvas().style.cursor = "pointer";
+          });
+
+          // Change the cursor back to default when the mouse leaves the layer
+          map.on("mouseleave", layer, function () {
+            map.getCanvas().style.cursor = "";
+          });
         });
       }
 
@@ -496,13 +644,13 @@
           });
         });
       document
-        .querySelectorAll(".toggleSchoolsLayer")
+        .querySelectorAll(".togglePointsLayer")
         .forEach(function (checkbox) {
           checkbox.addEventListener("change", function () {
             const layer = this.dataset.layer;
-            const color = this.dataset.color;
+            const icon = this.dataset.icon;
             if (this.checked) {
-              addSchoolsLayer(layer, color);
+              addPointsLayer(layer, icon);
             } else {
               map.removeLayer(layer);
               map.removeSource(layer);
