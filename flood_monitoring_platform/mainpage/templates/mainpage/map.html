@@ -1,236 +1,327 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flood Map</title>
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
-    <link
-      href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css"
-      rel="stylesheet"
-    />
-    <style>
-      #map {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
-      }
-      #controls {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: white;
-        padding: 10px;
-        border-radius: 5px;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="map"></div>
-    <div id="controls">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flood Map</title>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+    .map-controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #42c7d6;
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 1;
+    }
+    .hidden-menu {
+      position: absolute;
+      left: -300px; /* Hide menu initially */
+      top: 10px;
+      width: 300px;
+      height: calc(100% - 20px);
+      background: #42c7d6;
+      padding: 10px;
+      border-radius: 5px;
+      transition: left 0.3s ease;
+      z-index: 1;
+    }
+    .menu-open {
+      left: 10px; /* Show menu */
+    }
+    .menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .menu-header h3 {
+      margin: 0;
+    }
+    .menu-toggle-button {
+      background: #42c7d6;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 1;
+    }
+    .menu-list {
+      overflow-y: auto;
+      height: calc(100% - 40px); /* Adjust height to fit remaining space */
+      display: flex;
+      flex-direction: column; /* Arrange items vertically */
+    }
+    .menu-item {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="map-controls">
+    <button id="menu-toggle" class="menu-toggle-button">Toggle Layers Menu</button>
+  </div>
+  <div id="hidden-menu" class="hidden-menu">
+    <div class="menu-header">
       <h3>Toggle Layers</h3>
-      <label>
-        <input type="checkbox" id="toggleJuneFloodExtent" /> June Flood Extent
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" id="toggleJulyFloodExtent" /> July Flood Extent
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" id="toggleAugustFloodExtent" /> August Flood Extent
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" id="toggleSettlementsaug" /> Settlements August
-      </label>
-      <label>
-        <input type="checkbox" id="toggleSettlementsjune" /> Settlements June
-      </label>
-      <label>
-        <input type="checkbox" id="toggleSettlementsjuly" /> Settlements July
-      </label>
-      <label>
-        <input type="checkbox" id="toggleSettlementssept" /> Settlements Sept
-      </label>
-      <label>
-        <input type="checkbox" id="toggleAirportjune" /> Airport June
-      </label>
-      <label>
-        <input type="checkbox" id="toggleAirportjuly" /> Airport July
-      </label>
-      <label>
-        <input type="checkbox" id="toggleAirportaug" /> Airport Aug
-      </label>
-      <label>
-        <input type="checkbox" id="toggleAirportsept" /> Airport Sept
-      </label>
-      <label>
+      <button id="menu-close" class="menu-toggle-button">Close</button>
+    </div>
+    <div class="menu-list">
+      <label class="menu-item">
         <input type="checkbox" id="togglePak" /> Pak Boundary
       </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleJuneFloodExtent" /> June Flood Extent
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleJulyFloodExtent" /> July Flood Extent
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleAugustFloodExtent" /> August Flood Extent
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleSettlementsaug" /> Settlements August
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleSettlementsjune" /> Settlements June
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleSettlementsjuly" /> Settlements July
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleSettlementssept" /> Settlements Sept
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleAirportjune" /> Airport June
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleAirportjuly" /> Airport July
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleAirportaug" /> Airport Aug
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleAirportsept" /> Airport Sept
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleHealthjune" /> Hospital June
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleHealthjuly" /> Hospital July
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleHealthaug" /> Hospital Aug
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleHealthsept" /> Hospital Sept
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleSchooljune" /> School June
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleSchooljuly" /> School July
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleSchoolaug" /> School Aug
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleSchoolsept" /> School Sept
+      </label>
+      <label class="menu-item">
+        <input type="checkbox" id="toggleNharoads" /> NHA Roads
+      </label>
     </div>
-    <script>
-      mapboxgl.accessToken =
-        "pk.eyJ1IjoiYWxpaGFtemEtMTQiLCJhIjoiY2x4dHkzdHJ6MWhzOTJrcXdqcnFsYnU4dyJ9.LbRvUbNnNk2rUq13y-8gFQ";
-      const map = new mapboxgl.Map({
-        container: "map",
-        style: "mapbox://styles/mapbox/streets-v11",
-        center: [69.3451, 30.3753],
-        zoom: 4,
+  </div>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYWxpaGFtemEtMTQiLCJhIjoiY2x4dHkzdHJ6MWhzOTJrcXdqcnFsYnU4dyJ9.LbRvUbNnNk2rUq13y-8gFQ';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [69.3451, 30.3753],
+      zoom: 4
+    });
+
+    document.getElementById('menu-toggle').addEventListener('click', function () {
+      document.getElementById('hidden-menu').classList.toggle('menu-open');
+    });
+
+    document.getElementById('menu-close').addEventListener('click', function () {
+      document.getElementById('hidden-menu').classList.remove('menu-open');
+    });
+
+    function addFloodExtent(url, sourceId, layerId, color) {
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          // Parse the 'geometry' field if it's a string
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === 'string') {
+              feature.geometry = JSON.parse(feature.geometry);
+            }
+          });
+
+          if (!map.getSource(sourceId)) {
+            map.addSource(sourceId, {
+              type: 'geojson',
+              data: data
+            });
+
+            map.addLayer({
+              id: layerId,
+              type: 'fill',
+              source: sourceId,
+              layout: {},
+              paint: {
+                'fill-color': color,
+                'fill-opacity': 0.75
+              }
+            });
+          }
+        });
+    }
+
+    function addLine(url, sourceId, layerId, color) {
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          // Parse the 'geometry' field if it's a string
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === 'string') {
+              feature.geometry = JSON.parse(feature.geometry);
+            }
+          });
+
+          if (!map.getSource(sourceId)) {
+            map.addSource(sourceId, {
+              type: 'geojson',
+              data: data
+            });
+
+            map.addLayer({
+              id: layerId,
+              type: 'line',
+              source: sourceId,
+              layout: {},
+              paint: {
+                'line-color': color,
+                'line-width': 2
+              }
+            });
+          }
+        });
+    }
+
+    function addPoints(url, sourceId, layerId, color) {
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          // Parse the 'geometry' field if it's a string
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === 'string') {
+              feature.geometry = JSON.parse(feature.geometry);
+            }
+          });
+
+          if (!map.getSource(sourceId)) {
+            map.addSource(sourceId, {
+              type: 'geojson',
+              data: data
+            });
+
+            map.addLayer({
+              id: layerId,
+              type: 'circle',
+              source: sourceId,
+              layout: {},
+              paint: {
+                'circle-color': color,
+                'circle-radius': 2,
+                'circle-stroke-width': 1,
+                'circle-stroke-color': 'black'
+              }
+            });
+          }
+        });
+    }
+
+    function toggleLayer(checkboxId, url, sourceId, layerId, color) {
+      document.getElementById(checkboxId).addEventListener('change', event => {
+        if (event.target.checked) {
+          addFloodExtent(url, sourceId, layerId, color);
+        } else {
+          if (map.getLayer(layerId)) {
+            map.removeLayer(layerId);
+            map.removeSource(sourceId);
+          }
+        }
       });
+    }
 
-      function addFloodExtent(url, sourceId, layerId, color) {
-        fetch(url)
-          .then((response) => response.json())
-          .then((data) => {
-            // Parse the 'geometry' field if it's a string
-            data.features.forEach((feature) => {
-              if (typeof feature.geometry === "string") {
-                feature.geometry = JSON.parse(feature.geometry);
-              }
-            });
-
-            if (!map.getSource(sourceId)) {
-              map.addSource(sourceId, {
-                type: "geojson",
-                data: data,
-              });
-
-              map.addLayer({
-                id: layerId,
-                type: "fill",
-                source: sourceId,
-                layout: {},
-                paint: {
-                  "fill-color": color,
-                  "fill-opacity": 0.75,
-                },
-              });
-            }
-          });
-      }
-
-      function addLine(url, sourceId, layerId, color) {
-        fetch(url)
-          .then((response) => response.json())
-          .then((data) => {
-            // Parse the 'geometry' field if it's a string
-            data.features.forEach((feature) => {
-              if (typeof feature.geometry === "string") {
-                feature.geometry = JSON.parse(feature.geometry);
-              }
-            });
-
-            if (!map.getSource(sourceId)) {
-              map.addSource(sourceId, {
-                type: "geojson",
-                data: data,
-              });
-
-              map.addLayer({
-                id: layerId,
-                type: "line",
-                source: sourceId,
-                layout: {},
-                paint: {
-                  "line-color": color,
-                  "fill-width": 5,
-                },
-              });
-            }
-          });
-      }
-
-
-      function addPoints(url, sourceId, layerId, color) {
-        fetch(url)
-          .then((response) => response.json())
-          .then((data) => {
-            // Parse the 'geometry' field if it's a string
-            data.features.forEach((feature) => {
-              if (typeof feature.geometry === "string") {
-                feature.geometry = JSON.parse(feature.geometry);
-              }
-            });
-
-            if (!map.getSource(sourceId)) {
-              map.addSource(sourceId, {
-                type: "geojson",
-                data: data,
-              });
-
-              map.addLayer({
-                id: layerId,
-                type: "circle",
-                source: sourceId,
-                layout: {},
-                paint: {
-                  "circle-color": color,
-                  "circle-radius": 2,
-                  "circle-stroke-width": 1,
-                  "circle-stroke-color": "black",
-                },
-              });
-            }
-          });
-      }
-
-      function toggleLayer(checkboxId, url, sourceId, layerId, color) {
-        document.getElementById(checkboxId).addEventListener("change", (event) => {
-          if (event.target.checked) {
-            addFloodExtent(url, sourceId, layerId, color);
-          } else {
-            if (map.getLayer(layerId)) {
-              map.removeLayer(layerId);
-              map.removeSource(sourceId);
-            }
+    function toggleLineLayer(checkboxId, url, sourceId, layerId, color) {
+      document.getElementById(checkboxId).addEventListener('change', event => {
+        if (event.target.checked) {
+          addLine(url, sourceId, layerId, color);
+        } else {
+          if (map.getLayer(layerId)) {
+            map.removeLayer(layerId);
+            map.removeSource(sourceId);
           }
-        });
-      }
-      function toggleLineLayer(checkboxId, url, sourceId, layerId, color) {
-        document.getElementById(checkboxId).addEventListener("change", (event) => {
-          if (event.target.checked) {
-            addLine(url, sourceId, layerId, color);
-          } else {
-            if (map.getLayer(layerId)) {
-              map.removeLayer(layerId);
-              map.removeSource(sourceId);
-            }
+        }
+      });
+    }
+
+    function togglePointsLayer(checkboxId, url, sourceId, layerId, color) {
+      document.getElementById(checkboxId).addEventListener('change', event => {
+        if (event.target.checked) {
+          addPoints(url, sourceId, layerId, color);
+        } else {
+          if (map.getLayer(layerId)) {
+            map.removeLayer(layerId);
+            map.removeSource(sourceId);
           }
-        });
-      }
+        }
+      });
+    }
 
-      function togglePointsLayer(checkboxId, url, sourceId, layerId, color) {
-        document.getElementById(checkboxId).addEventListener("change", (event) => {
-          if (event.target.checked) {
-            addPoints(url, sourceId, layerId, color);
-          } else {
-            if (map.getLayer(layerId)) {
-              map.removeLayer(layerId);
-              map.removeSource(sourceId);
-            }
-          }
-        });
-      }
+    toggleLayer('toggleJuneFloodExtent', '/flood_extent/june/', 'june_flood_extent', 'june_flood_extent_layer', 'blue');
+    toggleLayer('toggleJulyFloodExtent', '/flood_extent/july/', 'july_flood_extent', 'july_flood_extent_layer', 'green');
+    toggleLayer('toggleAugustFloodExtent', '/flood_extent/august/', 'august_flood_extent', 'august_flood_extent_layer', 'red');
 
-      toggleLayer("toggleJuneFloodExtent", "/flood_extent/june/", "june_flood_extent", "june_flood_extent_layer", "blue");
-      toggleLayer("toggleJulyFloodExtent", "/flood_extent/july/", "july_flood_extent", "july_flood_extent_layer", "green");
-      toggleLayer("toggleAugustFloodExtent", "/flood_extent/august/", "august_flood_extent", "august_flood_extent_layer", "red");
+    togglePointsLayer('toggleSettlementsaug', '/settlements_aug/', 'settlements_aug', 'settlements_aug_layer', 'orange');
+    togglePointsLayer('toggleSettlementsjune', '/settlements_june/', 'settlements_june', 'settlements_june_layer', 'yellow');
+    togglePointsLayer('toggleSettlementsjuly', '/settlements_july/', 'settlements_july', 'settlements_july_layer', 'pink');
+    togglePointsLayer('toggleSettlementssept', '/settlements_sept/', 'settlements_sept', 'settlements_sept_layer', 'cyan');
 
-      togglePointsLayer("toggleSettlementsaug", "/settlements_aug/", "settlements_aug", "settlements_aug_layer", "orange");
-      togglePointsLayer("toggleSettlementsjune", "/settlements_june/", "settlements_june", "settlements_june_layer", "yellow");
-      togglePointsLayer("toggleSettlementsjuly", "/settlements_july/", "settlements_july", "settlements_july_layer", "pink");
-      togglePointsLayer("toggleSettlementssept", "/settlements_sept/", "settlements_sept", "settlements_sept_layer", "cyan");
+    togglePointsLayer('toggleAirportjune', '/airport_june/', 'airport_june', 'airport_june_layer', 'blue');
+    togglePointsLayer('toggleAirportjuly', '/airport_july/', 'airport_july', 'airport_july_layer', 'blue');
+    togglePointsLayer('toggleAirportaug', '/airport_aug/', 'airport_aug', 'airport_aug_layer', 'blue');
+    togglePointsLayer('toggleAirportsept', '/airport_sept/', 'airport_sept', 'airport_sept_layer', 'blue');
 
-      togglePointsLayer("toggleAirportjune", "/airport_june/", "airport_june", "airport_june_layer", "blue");
-      togglePointsLayer("toggleAirportjuly", "/airport_july/", "airport_july", "airport_july_layer", "blue");
-      togglePointsLayer("toggleAirportaug", "/airport_aug/", "airport_aug", "airport_aug_layer", "blue");
-      togglePointsLayer("toggleAirportsept", "/airport_sept/", "airport_sept", "airport_sept_layer", "blue");
+    togglePointsLayer('toggleHealthjune', '/health_june/', 'health_june', 'health_june_layer', 'red');
+    togglePointsLayer('toggleHealthjuly', '/health_july/', 'health_july', 'health_july_layer', 'red');
+    togglePointsLayer('toggleHealthaug', '/health_aug/', 'health_aug', 'health_aug_layer', 'red');
+    togglePointsLayer('toggleHealthsept', '/health_sept/', 'health_sept', 'health_sept_layer', 'red');
 
-      toggleLineLayer("togglePak", "/pak/", "pak", "pak_layer", "red");
+    togglePointsLayer('toggleSchooljune', '/school_june/', 'school_june', 'school_june_layer', 'orange');
+    togglePointsLayer('toggleSchooljuly', '/school_july/', 'school_july', 'school_july_layer', 'orange');
+    togglePointsLayer('toggleSchoolaug', '/school_aug/', 'school_aug', 'school_aug_layer', 'orange');
+    togglePointsLayer('toggleSchoolsept', '/school_sept/', 'school_sept', 'school_sept_layer', 'orange');
 
-
-    </script>
-  </body>
+    toggleLineLayer('togglePak', '/pak/', 'pak', 'pak_layer', 'green');
+    toggleLineLayer('toggleNharoads', '/nharoads/', 'nharoads', 'nharoads_layer', 'red');
+  </script>
+</body>
 </html>
