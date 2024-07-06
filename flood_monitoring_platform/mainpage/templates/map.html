@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flood Map</title>
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
-  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
   <style>
     #map {
       position: absolute;
@@ -13,68 +13,99 @@
       bottom: 0;
       width: 100%;
     }
-    #controls {
+    #sidebar {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      background: white;
-      padding: 10px;
-      border-radius: 5px;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background-color: #333;
+      overflow-x: hidden;
+      transition: 0.5s;
+      width: 60px;
     }
-    .dropdown {
-      position: relative;
-      display: inline-block;
+    #sidebar.expanded {
+      width: 250px;
+    }
+    #sidebar .toggle-btn {
+      display: block;
+      text-align: center;
+      padding: 20px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+    }
+    #sidebar .sidebar-content {
+      display: none;
+      padding: 16px;
+      color: white;
+    }
+    #sidebar.expanded .sidebar-content {
+      display: block;
+    }
+    #sidebar .sidebar-content a {
+      text-decoration: none;
+      color: white;
+      display: block;
+      padding: 6px 16px;
+      transition: 0.3s;
+      font-family: 'Verdana', sans-serif; /* Change font-family as needed */
+      font-size: 16px; /* Change font-size as needed */
+   
+    }
+    #sidebar .sidebar-content a:hover {
+      background-color: #575757;
     }
     .dropdown-content {
       display: none;
-      position: absolute;
-      background-color: #f9f9f9;
-      min-width: 160px;
-      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-      z-index: 1;
-      padding: 10px;
-    }
-    .dropdown-content input {
-      margin: 5px;
+      padding-left: 25px;
     }
     .dropdown-content label {
       display: block;
-      padding: 5px 0;
-    }
-    .dropbtn {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px;
-      font-size: 16px;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    .dropbtn:after {
-      content: '\25BC';
-      margin-left: 10px;
+      margin: 5px 0;
+      font-family: Arial, sans-serif; /* Change font-family as needed */
+      font-size: 14.5px; /* Change font-size as needed */
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <div id="controls">
-    <h3>Toggle Layers</h3>
-    <div class="dropdown">
-      <button class="dropbtn" onclick="toggleDropdown()">Flood Extents</button>
-      <div class="dropdown-content" id="dropdown-content">
-        <label>
-          <input type="checkbox" class="toggleLayer" data-layer="june"> June
-        </label>
-        <label>
-          <input type="checkbox" class="toggleLayer" data-layer="july"> July
-        </label>
-        <label>
-          <input type="checkbox" class="toggleLayer" data-layer="august"> August
-        </label>
-        <label>
-          <input type="checkbox" class="toggleLayer" data-layer="september"> September
-        </label>
+  <div id="sidebar">
+    <div class="toggle-btn" onclick="toggleSidebar()">☰</div>
+    <div class="sidebar-content">
+      <a href="#" onclick="toggleAdminBoundary()">Administrative Boundary</a>
+      <div class="dropdown">
+        <a href="#" onclick="toggleDropdown('floodDropdown')">Flood Extents</a>
+        <div id="floodDropdown" class="dropdown-content">
+          <label>
+            <input type="checkbox" class="toggleLayer" data-layer="june"> June
+          </label>
+          <label>
+            <input type="checkbox" class="toggleLayer" data-layer="july"> July
+          </label>
+          <label>
+            <input type="checkbox" class="toggleLayer" data-layer="august"> August
+          </label>
+          <label>
+            <input type="checkbox" class="toggleLayer" data-layer="september"> September
+          </label>
+        </div>
+      </div>
+      <div class="dropdown">
+        <a href="#" onclick="toggleDropdown('airportDropdown')">Airports</a>
+        <div id="airportDropdown" class="dropdown-content">
+          <label>
+            <input type="checkbox" class="toggleAirportLayer" data-month="june"> June
+          </label>
+          <label>
+            <input type="checkbox" class="toggleAirportLayer" data-month="july"> July
+          </label>
+          <label>
+            <input type="checkbox" class="toggleAirportLayer" data-month="august"> August
+          </label>
+          <label>
+            <input type="checkbox" class="toggleAirportLayer" data-month="september"> September
+          </label>
+        </div>
       </div>
     </div>
   </div>
@@ -83,15 +114,50 @@
     const map = new mapboxgl.Map({
       container: "map",
       center: [69.3451, 30.3753],
-      zoom: 4
+      zoom: 4.5
     });
 
-    const layerColors = {
-      june: "blue",
-      july: "green",
-      august: "yellow",
-      september: "red"
+    const extentColors = {
+      june: "#D0C73E", // Yellow
+      july: "#271ABC", // Dark Bluw
+      august: "#ff7f0e", // Orange
+      september: "#d62728", // Red
     };
+    
+    const airportColors = {
+      june: "#9467bd", // Purple
+      july: "#8c564b", // Brown
+      august: "#e377c2", // Pink
+      september: "#7f7f7f" // Grey
+    };
+
+    function addAdminBoundary() {
+      fetch("http://127.0.0.1:8000/pakistan_admin_boundary/")
+        .then(response => response.json())
+        .then(data => {
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === "string") {
+              feature.geometry = JSON.parse(feature.geometry);
+            }
+          });
+
+          map.addSource("pakistan_admin_boundary", {
+            type: "geojson",
+            data: data
+          });
+
+          map.addLayer({
+            id: "pakistan_admin_boundary",
+            type: "line",
+            source: "pakistan_admin_boundary",
+            layout: {},
+            paint: {
+              "line-color": "#1C580B", //Dark Green
+              "line-width": 3
+            }
+          });
+        });
+    }
 
     function addFloodExtent(layerName) {
       fetch(`http://127.0.0.1:8000/flood_extent/?month=${layerName}`)
@@ -114,13 +180,61 @@
             source: `${layerName}_flood_extent`,
             layout: {},
             paint: {
-              "fill-color": getRandomColor(),
+              "fill-color": extentColors[layerName],
               "fill-opacity": 0.75
             }
           });
         });
     }
 
+    function addAirport(month) {
+      fetch(`http://127.0.0.1:8000/airport/?month=${month}`)
+        .then(response => response.json())
+        .then(data => {
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === "string") {
+              feature.geometry = JSON.parse(feature.geometry);
+            }
+          });
+
+          map.addSource(`${month}_airport`, {
+            type: "geojson",
+            data: data
+          });
+
+          map.addLayer({
+            id: `${month}_airport`,
+            type: "circle",
+            source: `${month}_airport`,
+            paint: {
+              "circle-color": airportColors[month],
+              "circle-radius": 5,
+              "circle-stroke-width": 1,
+              "circle-stroke-color": "#ffffff"
+            }
+          });
+        });
+    }
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle('expanded');
+    }
+
+    function toggleDropdown(dropdownId) {
+      const dropdown = document.getElementById(dropdownId);
+      dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+    }
+
+    function toggleAdminBoundary() {
+      const button = document.querySelector('#sidebar a');
+      const isActive = button.classList.toggle('active');
+      if (isActive) {
+        addAdminBoundary();
+      } else {
+        map.removeLayer('pakistan_admin_boundary');
+        map.removeSource('pakistan_admin_boundary');
+      }
+    }
 
     document.querySelectorAll(".toggleLayer").forEach(checkbox => {
       checkbox.addEventListener("change", () => {
@@ -135,48 +249,20 @@
         }
       });
     });
-    
-    function toggleDropdown() {
-      const dropdownContent = document.getElementById("dropdown-content");
-      if (dropdownContent.style.display === "block") {
-        dropdownContent.style.display = "none";
-      } else {
-        dropdownContent.style.display = "block";
-      }
-    }
 
-    {% comment %} document.getElementById("toggleFloodExtent").addEventListener("change", event => {
-      const floodButtons = document.getElementById("floodButtons");
-      floodButtons.style.display = event.target.checked ? "block" : "none";
+    document.querySelectorAll(".toggleAirportLayer").forEach(checkbox => {
+      checkbox.addEventListener("change", () => {
+        const month = checkbox.getAttribute("data-month");
+        const isActive = checkbox.checked;
 
-      if (!event.target.checked) {
-        document.querySelectorAll(".toggleLayer").forEach(button => {
-          const layerName = button.getAttribute("data-layer");
-          map.removeLayer(`${layerName}_flood_extent`);
-          map.removeSource(`${layerName}_flood_extent`);
-        });
-      }
-    });
-
-    document.querySelectorAll(".toggleLayer").forEach(button => {
-      button.addEventListener("click", () => {
-        const layerName = button.getAttribute("data-layer");
-        const isActive = button.classList.contains("active");
-
-        if (!isActive) {
-          addFloodExtent(layerName);
-          button.classList.add("active");
+        if (isActive) {
+          addAirport(month);
         } else {
-          map.removeLayer(`${layerName}_flood_extent`);
-          map.removeSource(`${layerName}_flood_extent`);
-          button.classList.remove("active");
+          map.removeLayer(`${month}_airport`);
+          map.removeSource(`${month}_airport`);
         }
       });
-    }); {% endcomment %}
-
-    function getRandomColor() {
-      return '#' + Math.floor(Math.random() * 16777215).toString(16);
-    }
+    });
   </script>
 </body>
 </html>
