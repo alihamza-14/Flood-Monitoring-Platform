@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flood Map</title>
+  <title>Flood Monitoring Portal</title>
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
   <style>
@@ -22,7 +22,9 @@
       overflow-x: hidden;
       transition: 0.5s;
       width: 60px;
-    }
+      padding-top: 20px;
+    } 
+
     #sidebar.expanded {
       width: 250px;
     }
@@ -46,14 +48,28 @@
       text-decoration: none;
       color: white;
       display: block;
-      padding: 6px 16px;
+      padding: 10px 16px;
       transition: 0.3s;
-      font-family: 'Verdana', sans-serif; /* Change font-family as needed */
-      font-size: 16px; /* Change font-size as needed */
-   
+      font-family: 'Verdana', sans-serif;
+      font-size: 16px;
     }
-    #sidebar .sidebar-content a:hover {
+    #start-animation {
+      display: block;
+      padding: 10px 20px;
+      margin: 5px 0;
+      background: #3d8b40;
+      text-align: center;
+      color: white;
+      border: none;
+      {% comment %} border-radius: 3px; {% endcomment %}
+      cursor: pointer;
+    }
+    #sidebar .sidebar-content a:hover,
+    #start-animation:hover  {
       background-color: #575757;
+    }
+    #sidebar .sidebar-content a.active {
+      background-color: #444;
     }
     .dropdown-content {
       display: none;
@@ -62,8 +78,8 @@
     .dropdown-content label {
       display: block;
       margin: 5px 0;
-      font-family: Arial, sans-serif; /* Change font-family as needed */
-      font-size: 14.5px; /* Change font-size as needed */
+      font-family: Arial, sans-serif;
+      font-size: 14.5px;
     }
   </style>
 </head>
@@ -72,9 +88,13 @@
   <div id="sidebar">
     <div class="toggle-btn" onclick="toggleSidebar()">☰</div>
     <div class="sidebar-content">
-      <a href="#" onclick="toggleAdminBoundary()">Administrative Boundary</a>
+      <button id="start-animation">Start Animation</button>
+      <br>
+      <br>
+      <a href="#" onclick="toggleAdminBoundary(this)">Administrative Boundary</a>
+      <a href="#" onclick="toggleNHARoadNetwork(this)">NHA Road Network</a>
       <div class="dropdown">
-        <a href="#" onclick="toggleDropdown('floodDropdown')">Flood Extents</a>
+        <a href="#" onclick="toggleDropdown(this, 'floodDropdown')">Flood Extents</a>
         <div id="floodDropdown" class="dropdown-content">
           <label>
             <input type="checkbox" class="toggleLayer" data-layer="june"> June
@@ -91,7 +111,24 @@
         </div>
       </div>
       <div class="dropdown">
-        <a href="#" onclick="toggleDropdown('airportDropdown')">Airports</a>
+        <a href="#" onclick="toggleDropdown(this, 'roadDropdown')">Roads</a>
+        <div id="roadDropdown" class="dropdown-content">
+          <label>
+            <input type="checkbox" class="toggleRoadLayer" data-month="june"> June
+          </label>
+          <label>
+            <input type="checkbox" class="toggleRoadLayer" data-month="july"> July
+          </label>
+          <label>
+            <input type="checkbox" class="toggleRoadLayer" data-month="august"> August
+          </label>
+          <label>
+            <input type="checkbox" class="toggleRoadLayer" data-month="september"> September
+          </label>
+        </div>
+      </div>
+      <div class="dropdown">
+        <a href="#" onclick="toggleDropdown(this, 'airportDropdown')">Airports</a>
         <div id="airportDropdown" class="dropdown-content">
           <label>
             <input type="checkbox" class="toggleAirportLayer" data-month="june"> June
@@ -107,21 +144,125 @@
           </label>
         </div>
       </div>
+      <div class="dropdown">
+        <a href="#" onclick="toggleDropdown(this, 'settlementDropdown')">Settlements</a>
+        <div id="settlementDropdown" class="dropdown-content">
+          <label>
+            <input type="checkbox" class="toggleSettlementLayer" data-month="june"> June
+          </label>
+          <label>
+            <input type="checkbox" class="toggleSettlementLayer" data-month="july"> July
+          </label>
+          <label>
+            <input type="checkbox" class="toggleSettlementLayer" data-month="august"> August
+          </label>
+          <label>
+            <input type="checkbox" class="toggleSettlementLayer" data-month="september"> September
+          </label>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <a href="#" onclick="toggleDropdown(this, 'healthDropdown')">Health</a>
+        <div id="healthDropdown" class="dropdown-content">
+          <label>
+            <input type="checkbox" class="toggleHealthLayer" data-month="june"> June
+          </label>
+          <label>
+            <input type="checkbox" class="toggleHealthLayer" data-month="july"> July
+          </label>
+          <label>
+            <input type="checkbox" class="toggleHealthLayer" data-month="august"> August
+          </label>
+          <label>
+            <input type="checkbox" class="toggleHealthLayer" data-month="september"> September
+          </label>
+        </div>
+      </div>
+      <div class="dropdown">
+        <a href="#" onclick="toggleDropdown(this, 'schoolDropdown')">Schools</a>
+        <div id="schoolDropdown" class="dropdown-content">
+          <label>
+            <input type="checkbox" class="toggleSchoolLayer" data-month="june"> June
+          </label>
+          <label>
+            <input type="checkbox" class="toggleSchoolLayer" data-month="july"> July
+          </label>
+          <label>
+            <input type="checkbox" class="toggleSchoolLayer" data-month="august"> August
+          </label>
+          <label>
+            <input type="checkbox" class="toggleSchoolLayer" data-month="september"> September
+          </label>
+        </div>
+      </div>      
     </div>
   </div>
   <script>
     mapboxgl.accessToken = "pk.eyJ1IjoiYWxpaGFtemEtMTQiLCJhIjoiY2x4dHkzdHJ6MWhzOTJrcXdqcnFsYnU4dyJ9.LbRvUbNnNk2rUq13y-8gFQ";
     const map = new mapboxgl.Map({
       container: "map",
-      center: [69.3451, 30.3753],
-      zoom: 4.5
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [74.237, 34.735], // initial center [lng, lat]
+     // center: [69.3451, 30.3753],
+      zoom: 6
     });
 
+    const cameraPositions = [
+    { center: [74.237, 34.735], zoom: 6 }, // Kashmir
+    { center: [60.395, 23.080], zoom: 6 }, // Karachi
+    { center: [74.237, 34.735], zoom: 6 }  // Kashmir
+    ];
+
+let currentIndex = 0;
+let animationInterval;
+
+{% comment %} function animateCamera() {
+  const startPosition = cameraPositions[currentIndex];
+  const endPosition = cameraPositions[(currentIndex + 1) % cameraPositions.length];
+  const steps = 100;
+  let step = 0;
+
+  function move() {
+      if (step <= steps) {
+          const lng = startPosition[0] + (endPosition[0] - startPosition[0]) * (step / steps);
+          const lat = startPosition[1] + (endPosition[1] - startPosition[1]) * (step / steps);
+          map.easeTo({
+              center: [lng, lat],
+              zoom: 6,
+              speed: 0.2,
+              curve: 1
+          });
+          step++;
+          animationFrame = requestAnimationFrame(move);
+      } else {
+          currentIndex = (currentIndex + 1) % cameraPositions.length;
+          step = 0;
+          animateCamera();
+      }
+  }
+
+  move();
+} {% endcomment %}
+  function animateCamera() {
+    const position = cameraPositions[currentIndex];
+    map.flyTo({
+        center: position.center,
+        zoom: position.zoom,
+        speed: 0.12, // make the flying slow
+        curve: 1,  // change the speed at which it zooms out
+        easing(t) {
+            return t;
+        }
+    });
+
+    currentIndex = (currentIndex + 1) % cameraPositions.length;
+  } 
     const extentColors = {
       june: "#D0C73E", // Yellow
-      july: "#271ABC", // Dark Bluw
+      july: "#271ABC", // Dark Blue
       august: "#ff7f0e", // Orange
-      september: "#d62728", // Red
+      september: "#d62728" // Red
     };
     
     const airportColors = {
@@ -131,6 +272,34 @@
       september: "#7f7f7f" // Grey
     };
 
+    const healthColors = {
+      june: "#1f77b4", // Light Blue
+      july: "#ff7f0e", // Orange
+      august: "#2ca02c", // Green
+      september: "#d62728" // Red
+    };
+    
+    const roadColors = {
+      june: "#8B4513", // SaddleBrown
+      july: "#FF4500", // OrangeRed
+      august: "#32CD32", // LimeGreen
+      september: "#4682B4" // SteelBlue
+    };
+ 
+    const settlementColors = {
+      june: "#FF4500", // Orange Red
+      july: "#2E8B57", // Sea Green
+      august: "#4682B4", // Steel Blue
+      september: "#D2691E" // Chocolate
+    };
+    
+    const schoolColors = {
+      june: "#3B3B6D", // Dark Blue
+      july: "#DAA520", // Goldenrod
+      august: "#FF6347", // Tomato
+      september: "#8A2BE2" // Blue Violet
+    };
+    
     function addAdminBoundary() {
       fetch("http://127.0.0.1:8000/pakistan_admin_boundary/")
         .then(response => response.json())
@@ -152,8 +321,36 @@
             source: "pakistan_admin_boundary",
             layout: {},
             paint: {
-              "line-color": "#1C580B", //Dark Green
+              "line-color": "#1C580B", // Dark Green
               "line-width": 3
+            }
+          });
+        });
+    }
+
+    function addNHARoadNetwork() {
+      fetch("http://127.0.0.1:8000/nha_road_network/")
+        .then(response => response.json())
+        .then(data => {
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === "string") {
+              feature.geometry = JSON.parse(feature.geometry);
+            }
+          });
+
+          map.addSource("nha_road_network", {
+            type: "geojson",
+            data: data
+          });
+
+          map.addLayer({
+            id: "nha_road_network",
+            type: "line",
+            source: "nha_road_network",
+            layout: {},
+            paint: {
+              "line-color": "#800A02", // Red
+              "line-width": 1.5
             }
           });
         });
@@ -187,6 +384,33 @@
         });
     }
 
+    function addRoad(month) {
+      fetch(`http://127.0.0.1:8000/road/?month=${month}`)
+        .then(response => response.json())
+        .then(data => {
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === "string") {
+              feature.geometry = JSON.parse(feature.geometry);
+            }
+          });
+    
+          map.addSource(`${month}_road`, {
+            type: "geojson",
+            data: data
+          });
+    
+          map.addLayer({
+            id: `${month}_road`,
+            type: "line",
+            source: `${month}_road`,
+            paint: {
+              "line-color": roadColors[month],
+              "line-width": 1
+            }
+          });
+        });
+    }
+    
     function addAirport(month) {
       fetch(`http://127.0.0.1:8000/airport/?month=${month}`)
         .then(response => response.json())
@@ -216,17 +440,115 @@
         });
     }
 
+    function addHealth(month) {
+      fetch(`http://127.0.0.1:8000/health/?month=${month}`)
+        .then(response => response.json())
+        .then(data => {
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === "string") {
+              feature.geometry = JSON.parse(feature.geometry);
+            }
+          });
+
+          map.addSource(`${month}_health`, {
+            type: "geojson",
+            data: data
+          });
+
+          map.addLayer({
+            id: `${month}_health`,
+            type: "circle",
+            source: `${month}_health`,
+            paint: {
+              "circle-color": healthColors[month],
+              "circle-radius": 4,
+              "circle-stroke-width": 1,
+              "circle-stroke-color": "#ffffff"
+            }
+          });
+        });
+    }
+ 
+    function addSettlement(month) {
+      fetch(`http://127.0.0.1:8000/settlement/?month=${month}`)
+        .then(response => response.json())
+        .then(data => {
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === "string") {
+              feature.geometry = JSON.parse(feature.geometry);
+            }
+          });
+    
+          map.addSource(`${month}_settlement`, {
+            type: "geojson",
+            data: data
+          });
+    
+          map.addLayer({
+            id: `${month}_settlement`,
+            type: "circle",
+            source: `${month}_settlement`,
+            paint: {
+              "circle-color": settlementColors[month],
+              "circle-radius": 3,
+              "circle-stroke-width": 1,
+              "circle-stroke-color": "#ffffff"
+            }
+          });
+        });
+    }
+
+    function addSchool(month) {
+      fetch(`http://127.0.0.1:8000/school/?month=${month}`)
+        .then(response => response.json())
+        .then(data => {
+          data.features.forEach(feature => {
+            if (typeof feature.geometry === "string") {
+              feature.geometry = JSON.parse(feature.geometry);
+            }
+          });
+    
+          map.addSource(`${month}_school`, {
+            type: "geojson",
+            data: data
+          });
+    
+          map.addLayer({
+            id: `${month}_school`,
+            type: "circle",
+            source: `${month}_school`,
+            paint: {
+              "circle-color": schoolColors[month],
+              "circle-radius": 2,
+              "circle-stroke-width": 1,
+              "circle-stroke-color": "#ffffff"
+            }
+          });
+        });
+    }
+    
     function toggleSidebar() {
       document.getElementById("sidebar").classList.toggle('expanded');
     }
 
-    function toggleDropdown(dropdownId) {
+    function toggleDropdown(button, dropdownId) {
       const dropdown = document.getElementById(dropdownId);
-      dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+      const isActive = dropdown.style.display === "block";
+      
+      // Close all dropdowns first
+      document.querySelectorAll('.dropdown-content').forEach(d => {
+        d.style.display = 'none';
+      });
+      document.querySelectorAll('.dropdown a').forEach(a => {
+        a.classList.remove('active');
+      });
+
+      // Toggle the selected dropdown
+      dropdown.style.display = isActive ? "none" : "block";
+      button.classList.toggle('active', !isActive);
     }
 
-    function toggleAdminBoundary() {
-      const button = document.querySelector('#sidebar a');
+    function toggleAdminBoundary(button) {
       const isActive = button.classList.toggle('active');
       if (isActive) {
         addAdminBoundary();
@@ -236,12 +558,20 @@
       }
     }
 
-    document.querySelectorAll(".toggleLayer").forEach(checkbox => {
-      checkbox.addEventListener("change", () => {
-        const layerName = checkbox.getAttribute("data-layer");
-        const isActive = checkbox.checked;
+    function toggleNHARoadNetwork(button) {
+      const isActive = button.classList.toggle('active');
+      if (isActive) {
+        addNHARoadNetwork();
+      } else {
+        map.removeLayer('nha_road_network');
+        map.removeSource('nha_road_network');
+      }
+    }
 
-        if (isActive) {
+    document.querySelectorAll('.toggleLayer').forEach(item => {
+      item.addEventListener('change', event => {
+        const layerName = event.target.getAttribute('data-layer');
+        if (event.target.checked) {
           addFloodExtent(layerName);
         } else {
           map.removeLayer(`${layerName}_flood_extent`);
@@ -250,12 +580,10 @@
       });
     });
 
-    document.querySelectorAll(".toggleAirportLayer").forEach(checkbox => {
-      checkbox.addEventListener("change", () => {
-        const month = checkbox.getAttribute("data-month");
-        const isActive = checkbox.checked;
-
-        if (isActive) {
+    document.querySelectorAll('.toggleAirportLayer').forEach(item => {
+      item.addEventListener('change', event => {
+        const month = event.target.getAttribute('data-month');
+        if (event.target.checked) {
           addAirport(month);
         } else {
           map.removeLayer(`${month}_airport`);
@@ -263,6 +591,63 @@
         }
       });
     });
+
+    document.querySelectorAll('.toggleHealthLayer').forEach(item => {
+      item.addEventListener('change', event => {
+        const month = event.target.getAttribute('data-month');
+        if (event.target.checked) {
+          addHealth(month);
+        } else {
+          map.removeLayer(`${month}_health`);
+          map.removeSource(`${month}_health`);
+        }
+      });
+    });
+
+    document.querySelectorAll('.toggleRoadLayer').forEach(item => {
+      item.addEventListener('change', event => {
+        const month = event.target.getAttribute('data-month');
+        if (event.target.checked) {
+          addRoad(month);
+        } else {
+          map.removeLayer(`${month}_road`);
+          map.removeSource(`${month}_road`);
+        }
+      });
+    });
+
+    document.querySelectorAll('.toggleSettlementLayer').forEach(item => {
+      item.addEventListener('change', event => {
+        const month = event.target.getAttribute('data-month');
+        if (event.target.checked) {
+          addSettlement(month);
+        } else {
+          map.removeLayer(`${month}_settlement`);
+          map.removeSource(`${month}_settlement`);
+        }
+      });
+    });
+
+    document.querySelectorAll('.toggleSchoolLayer').forEach(item => {
+      item.addEventListener('change', event => {
+        const month = event.target.getAttribute('data-month');
+        if (event.target.checked) {
+          addSchool(month);
+        } else {
+          map.removeLayer(`${month}_school`);
+          map.removeSource(`${month}_school`);
+        }
+      });
+    });
+
+    document.getElementById('start-animation').addEventListener('click', () => {
+      if (animationInterval) {
+          clearInterval(animationInterval);
+      }
+      animateCamera(); // Start the first animation immediately
+      animationInterval = setInterval(animateCamera, 6000); // Adjust the time interval as needed
+    }); 
+   
   </script>
 </body>
 </html>
