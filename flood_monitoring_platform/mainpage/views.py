@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.core.serializers import serialize
-from .models import FloodExtentJuly, FloodExtentJune, FloodExtentAugust, Settlementsaug, Settlementsjune, Settlementsjuly, Settlementssept, Airportjune, Airportjuly, Airportaug, Airportsept, Pak, Healthjune, Healthjuly, Healthaug, Healthsept, Schooljune, Schooljuly, Schoolaug, Schoolsept, Nharoads
+from .models import FloodExtentJuly, FloodExtentJune, FloodExtentAugust, Settlementsaug, Settlementsjune, Settlementsjuly, Settlementssept, Airportjune, Airportjuly, Airportaug, Airportsept, Pak
 from django.contrib.gis.geos import GEOSGeometry
 
 def get_flood_extent_data(flood_extents):
@@ -112,78 +112,6 @@ def airport_sept(request):
 def pak(request):
     try:
         settlements = Pak.objects.all()
-        geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
-        return JsonResponse(geojson_data)
-    except Exception as e:
-        return render(request, 'error.html', {'error': str(e)})
-    
-def health_june(request):
-    try:
-        settlements = Healthjune.objects.all()
-        geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
-        return JsonResponse(geojson_data)
-    except Exception as e:
-        return render(request, 'error.html', {'error': str(e)})
-    
-def health_july(request):
-    try:
-        settlements = Healthjuly.objects.all()
-        geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
-        return JsonResponse(geojson_data)
-    except Exception as e:
-        return render(request, 'error.html', {'error': str(e)})
-    
-def health_aug(request):
-    try:
-        settlements = Healthaug.objects.all()
-        geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
-        return JsonResponse(geojson_data)
-    except Exception as e:
-        return render(request, 'error.html', {'error': str(e)})
-    
-def health_sept(request):
-    try:
-        settlements = Healthsept.objects.all()
-        geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
-        return JsonResponse(geojson_data)
-    except Exception as e:
-        return render(request, 'error.html', {'error': str(e)})
-
-def school_june(request):
-    try:
-        settlements = Schooljune.objects.all()
-        geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
-        return JsonResponse(geojson_data)
-    except Exception as e:
-        return render(request, 'error.html', {'error': str(e)})
-    
-def school_july(request):
-    try:
-        settlements = Schooljuly.objects.all()
-        geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
-        return JsonResponse(geojson_data)
-    except Exception as e:
-        return render(request, 'error.html', {'error': str(e)})
-    
-def school_aug(request):
-    try:
-        settlements = Schoolaug.objects.all()
-        geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
-        return JsonResponse(geojson_data)
-    except Exception as e:
-        return render(request, 'error.html', {'error': str(e)})
-    
-def school_sept(request):
-    try:
-        settlements = Schoolsept.objects.all()
-        geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
-        return JsonResponse(geojson_data)
-    except Exception as e:
-        return render(request, 'error.html', {'error': str(e)})
-    
-def nharoads(request):
-    try:
-        settlements = Nharoads.objects.all()
         geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
         return JsonResponse(geojson_data)
     except Exception as e:

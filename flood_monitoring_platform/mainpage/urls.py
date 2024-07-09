@@ -13,16 +13,6 @@ urlpatterns = [
     path('airport_july/', views.airport_july, name='airport_july'),
     path('airport_aug/', views.airport_aug, name='airport_aug'),
     path('airport_sept/', views.airport_sept, name='airport_sept'),
-    path('pak/', views.pak, name='pak'),
-    path('health_june/', views.health_june, name='health_june'),
-    path('health_july/', views.health_july, name='health_july'),
-    path('health_aug/', views.health_aug, name='health_aug'),
-    path('health_sept/', views.health_sept, name='health_sept'),
-    path('school_june/', views.school_june, name='school_june'),
-    path('school_july/', views.school_july, name='school_july'),
-    path('school_aug/', views.school_aug, name='school_aug'),
-    path('school_sept/', views.school_sept, name='school_sept'),
-    path('nharoads/', views.nharoads, name='nharoads'),
-     
+     path('pak/', views.pak, name='pak'),
     path('', views.map_view, name='map_view'),
 ]
