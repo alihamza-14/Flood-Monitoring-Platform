@@ -22,5 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('mainpage.urls')),
     # path('', views.map_view, name='map_view'),
-    # path('flood_extent',views.flood_extent, name='flood_extent'),
+    #path('flood_extent',views.flood_extent, name='flood_extent'),
 ]
+
+
