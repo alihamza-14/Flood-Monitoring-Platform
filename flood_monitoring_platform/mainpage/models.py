@@ -116,3 +116,12 @@ class Pak(models.Model):
 
     class Meta:
         db_table = 'pak'
+        
+class Nharoads(models.Model):
+    geom = models.PolygonField()
+
+    def __str__(self):
+        return f'Nharoads object ({self.id})'
+
+    class Meta:
+        db_table = 'nharoads'

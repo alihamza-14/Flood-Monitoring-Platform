@@ -13,6 +13,7 @@ urlpatterns = [
     path('airport_july/', views.airport_july, name='airport_july'),
     path('airport_aug/', views.airport_aug, name='airport_aug'),
     path('airport_sept/', views.airport_sept, name='airport_sept'),
-     path('pak/', views.pak, name='pak'),
+    path('pak/', views.pak, name='pak'),
+    path('nharoads/', views.nharoads, name='pak'),
     path('', views.map_view, name='map_view'),
 ]

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.core.serializers import serialize
-from .models import FloodExtentJuly, FloodExtentJune, FloodExtentAugust, Settlementsaug, Settlementsjune, Settlementsjuly, Settlementssept, Airportjune, Airportjuly, Airportaug, Airportsept, Pak
+from .models import FloodExtentJuly, FloodExtentJune, FloodExtentAugust, Settlementsaug, Settlementsjune, Settlementsjuly, Settlementssept, Airportjune, Airportjuly, Airportaug, Airportsept, Pak, Nharoads
 from django.contrib.gis.geos import GEOSGeometry
 
 def get_flood_extent_data(flood_extents):
@@ -112,6 +112,14 @@ def airport_sept(request):
 def pak(request):
     try:
         settlements = Pak.objects.all()
+        geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
+        return JsonResponse(geojson_data)
+    except Exception as e:
+        return render(request, 'error.html', {'error': str(e)})
+
+def nharoads(request):
+    try:
+        settlements = Nharoads.objects.all()
         geojson_data = get_flood_extent_data(settlements)  # You can reuse the helper function
         return JsonResponse(geojson_data)
     except Exception as e:
