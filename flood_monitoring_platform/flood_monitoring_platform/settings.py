@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'mainpage',
     'corsheaders',
     
 ]
@@ -95,7 +94,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'mainpage', 'templates'),  
+            # os.path.join(BASE_DIR, 'mainpage', 'templates'),  
+            os.path.join(BASE_DIR, 'reactpage/build'), 
         ],
         'APP_DIRS': True,
         'OPTIONS': {
