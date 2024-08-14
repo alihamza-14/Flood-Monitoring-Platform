@@ -1,94 +1,753 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flood Map</title>
-  <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
-  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
-  <style>
-    #map {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 100%;
-    }
-    #controls {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: white;
-      padding: 10px;
-      border-radius: 5px;
-      z-index: 1; /* Ensure controls appear above the map */
-    }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <div id="controls">
-    <h3>Toggle Layers</h3>
-    <label>
-      <input type="checkbox" class="toggleLayer" data-layer="flood_june" data-color="blue">
-      Show June
-    </label><br>
-    <label>
-      <input type="checkbox" class="toggleLayer" data-layer="flood_july" data-color="green">
-      Show July
-    </label><br>
-    <label>
-      <input type="checkbox" class="toggleLayer" data-layer="flood_aug" data-color="orange">
-      Show August
-    </label><br>
-    <label>
-      <input type="checkbox" class="toggleLayer" data-layer="flood_sep" data-color="red">
-      Show September
-    </label>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flood Map</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* styles.css */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+}
 
-  <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYWxpaGFtemEtMTQiLCJhIjoiY2x4dHkzdHJ6MWhzOTJrcXdqcnFsYnU4dyJ9.LbRvUbNnNk2rUq13y-8gFQ';
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
 
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [69.3451, 30.3753],
-      zoom: 4
-    });
+#controls {
+  position: absolute;
+  top: 10px;
+  margin-left: 30px;
+  background: white;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 2;
+}
+#toggleSidebarButton {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 24px;
+  background: #007bff;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 3; /* Ensure it's above other elements */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
 
-    function addFloodExtent(layer, color) {
-      map.addSource(layer, {
-        type: 'vector',
-        tiles: [`http://127.0.0.1:8000/get_mvt/${layer}/{z}/{x}/{y}/`], // Adjust URL to match your server endpoint
-        minzoom: 0,
-        maxzoom: 14
+#toggleSidebarButton:hover {
+  background: #0056b3;
+}
+
+#sidebar {
+  position: absolute;
+  width: 250px;
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  transition: all 0.3s ease;
+  height: 565px;
+  overflow-y: scroll;
+  left: -280px; /* Hide the sidebar initially */
+}
+
+#sidebar.open{
+  left: 0px;
+}
+
+#sidebar h3 {
+  margin-top: 70px;
+  color: #333;
+}
+
+#sidebar details summary h4 {
+  display: inline-block;
+  cursor: pointer;
+  margin: 0;
+  padding: 5px;
+  color: #007bff;
+  transition: color 0.3s ease;
+}
+
+#sidebar details summary h4:hover {
+  color: #0056b3;
+}
+
+#sidebar details[open] summary h4 {
+  font-weight: bold;
+}
+
+#sidebar details summary::-webkit-details-marker {
+  display: none;
+}
+
+#sidebar label {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#sidebar label:hover {
+  background: #f1f1f1;
+  padding-left: 5px;
+}
+
+#sidebar input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+button#toggleAnimation {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  margin-left: 50px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button#toggleAnimation:hover {
+  background-color: #0056b3;
+}
+
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="toggleSidebarButton">&#9776;</div>
+    <div id="sidebar">
+      <div id="controls">
+        <button id="toggleAnimation">Start Animation</button>
+      </div>
+      <h3>Toggle Layers</h3>
+
+      <details>
+        <summary><h4>Admin Boundaries</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="toggleAdminLayer"
+            data-layer="pakistan_shapfile"
+            data-width="3.5"
+          />
+          National Boundaries </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleAdminLayer"
+            data-layer="pak_adm1"
+            data-width="1.5"
+          />
+          Provincial Boundaries </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleAdminLayer"
+            data-layer="pak_adm2"
+            data-width="0.5"
+          />
+          District Boundaries
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Flood Extent</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="toggleLayer"
+            data-layer="flood_june"
+            data-color="blue"
+          />
+          Show June </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleLayer"
+            data-layer="flood_july"
+            data-color="pink"
+          />
+          Show July </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleLayer"
+            data-layer="flood_aug"
+            data-color="orange"
+          />
+          Show August </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleLayer"
+            data-layer="flood_sep"
+            data-color="red"
+          />
+          Show September
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Affected Airports</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="airport_june"
+            data-icon="../../static/icons/airport.png"
+          />
+          June Airports </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="airport_july"
+            data-icon="../../static/icons/airport.png"
+          />
+          July Airports </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="airport_aug"
+            data-icon="../../static/icons/airport.png"
+          />
+          August Airports </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="airport_sept"
+            data-icon="../../static/icons/airport.png"
+          />
+          September Airports
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Affected Roads</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="toggleRoadsLayer"
+            data-layer="june_roads"
+            data-color="Blue"
+          />
+          June Roads </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleRoadsLayer"
+            data-layer="july_roads"
+            data-color="pink"
+          />
+          July Roads </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleRoadsLayer"
+            data-layer="aug_roads"
+            data-color="orange"
+          />
+          August Roads </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="toggleRoadsLayer"
+            data-layer="sept_roads"
+            data-color="red"
+          />
+          September Roads
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Affected Schools</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="school_june"
+            data-icon="../../static/icons/school.png"
+          />
+          June Schools </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="school_july"
+            data-icon="../../static/icons/school.png"
+          />
+          July Schools </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="school_aug"
+            data-icon="../../static/icons/school.png"
+          />
+          August Schools </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="school_sept"
+            data-icon="../../static/icons/school.png"
+          />
+          September Schools
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Affected Settlements</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="settlements_june"
+            data-icon="../../static/icons/settlement.png"
+          />
+          June Settlements </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="settlements_july"
+            data-icon="../../static/icons/settlement.png"
+          />
+          July Settlements </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="settlements_aug"
+            data-icon="../../static/icons/settlement.png"
+          />
+          August Settlements </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="settlements_sept"
+            data-icon="../../static/icons/settlement.png"
+          />
+          September Settlements
+        </label>
+      </details>
+
+      <details>
+        <summary><h4>Affected Health</h4></summary>
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="health_june"
+            data-icon="../../static/icons/health.png"
+          />
+          June Health </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="health_july"
+            data-icon="../../static/icons/health.png"
+          />
+          July Health </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="health_aug"
+            data-icon="../../static/icons/health.png"
+          />
+          August Health </label
+        ><br />
+        <label>
+          <input
+            type="checkbox"
+            class="togglePointsLayer"
+            data-layer="health_sept"
+            data-icon="../../static/icons/health.png"
+          />
+          September Health
+        </label>
+      </details>
+    </div>
+
+    <script>
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoiYWxpaGFtemEtMTQiLCJhIjoiY2x4dHkzdHJ6MWhzOTJrcXdqcnFsYnU4dyJ9.LbRvUbNnNk2rUq13y-8gFQ";
+
+      const map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/mapbox/streets-v9",
+        projection: "globe",
+        zoom: 7,
+        center: [73.0479, 33.6844], // Initial center of Islamabad
+      });
+      map.addControl(new mapboxgl.NavigationControl());
+      map.on("style.load", () => {
+        map.setFog({}); // Set the default atmosphere style
       });
 
-      map.addLayer({
-        id: layer,
-        type: 'fill',
-        source: layer,
-        'source-layer': layer, // Assuming source layer name is the same for all months
-        layout: {},
-        paint: {
-          'fill-color': color,
-          'fill-opacity': 0.75
+      // Define the coordinates for Islamabad and Karachi
+      const islamabad = [73.0479, 33.6844]; // Islamabad
+      const karachi = [67.0011, 24.8607]; // Karachi
+
+      let userInteracting = false;
+      let animationEnabled = false;
+      let currentAnimation = null;
+
+      function moveMap(toKarachi) {
+        if (!animationEnabled) return;
+        const target = toKarachi ? karachi : islamabad;
+        map.easeTo({
+          center: target,
+          duration: 20000, // 20 seconds duration
+          easing: (t) => t,
+          essential: true, // Essential ensures this animation gets played even if the user has set prefers-reduced-motion
+        });
+
+        // Listen for the transitionend event to detect when the animation completes
+        map.once("transitionend", function () {
+          console.log(
+            "Animation complete. User interacting:",
+            userInteracting,
+            "Animation enabled:",
+            animationEnabled
+          );
+          if (!userInteracting && animationEnabled) {
+            setTimeout(() => moveMap(!toKarachi), 1000); // Added a delay of 1 second before moving back
+          }
+        });
+      }
+
+      // Pause moving on interaction
+      map.on("mousedown", () => {
+        userInteracting = true;
+        if (currentAnimation) currentAnimation.stop();
+      });
+      map.on("dragstart", () => {
+        userInteracting = true;
+        if (currentAnimation) currentAnimation.stop();
+      });
+
+      // Resume moving after interaction
+      map.on("mouseup", () => {
+        userInteracting = false;
+        if (animationEnabled) {
+          moveMap(map.getCenter().lat > (islamabad[1] + karachi[1]) / 2);
         }
       });
-    }
-
-    document.querySelectorAll('.toggleLayer').forEach(function (checkbox) {
-      checkbox.addEventListener('change', function () {
-        const layer = this.dataset.layer;
-        const color = this.dataset.color;
-        if (this.checked) {
-          addFloodExtent(layer, color);
-        } else {
-          map.removeLayer(layer);
-          map.removeSource(layer);
+      map.on("dragend", () => {
+        userInteracting = false;
+        if (animationEnabled) {
+          moveMap(map.getCenter().lat > (islamabad[1] + karachi[1]) / 2);
         }
       });
+
+      // Ensure scroll zoom is enabled
+      map.scrollZoom.enable();
+
+      document
+        .getElementById("toggleAnimation")
+        .addEventListener("click", function () {
+          animationEnabled = !animationEnabled;
+          this.textContent = animationEnabled
+            ? "Stop Animation"
+            : "Start Animation";
+          if (animationEnabled) {
+            moveMap(true); // Start the initial movement towards Karachi
+          } else if (currentAnimation) {
+            currentAnimation.stop();
+          }
+        });
+
+      function addFloodExtent(layer, color) {
+        map.addSource(layer, {
+          type: "vector",
+          tiles: [`http://127.0.0.1:8000/get_mvt/${layer}/{z}/{x}/{y}/`], // Adjust URL to match your server endpoint
+          minzoom: 0,
+          maxzoom: 14,
+        });
+
+        map.addLayer({
+          id: layer,
+          type: "fill",
+          source: layer,
+          "source-layer": layer, // Assuming source layer name is the same for all months
+          layout: {},
+          paint: {
+            "fill-color": color,
+            "fill-opacity": 0.75,
+          },
+        });
+
+        map.on("click", layer, function (e) {
+          const coordinates = e.lngLat;
+          const properties = e.features[0].properties;
+
+          // Create a popup and set its content to feature properties
+          new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(
+              `<strong>${layer}</strong><br><p><strong>Flood Type:</strong>${properties.flood_type}</p>`
+            )
+            .addTo(map);
+        });
+
+        // Change the cursor to pointer when the mouse is over the layer
+        map.on("mouseenter", layer, function () {
+          map.getCanvas().style.cursor = "pointer";
+        });
+
+        // Change the cursor back to default when the mouse leaves the layer
+        map.on("mouseleave", layer, function () {
+          map.getCanvas().style.cursor = "";
+        });
+      }
+
+      function addAdminLayer(layer, width) {
+        map.addSource(layer, {
+          type: "vector",
+          tiles: [`http://127.0.0.1:8000/get_admin_mvt/${layer}/{z}/{x}/{y}/`], // Adjust URL to match your server endpoint
+          minzoom: 0,
+          maxzoom: 14,
+        });
+
+        map.addLayer({
+          id: layer,
+          type: "line",
+          source: layer,
+          "source-layer": layer,
+          layout: {},
+          paint: {
+            "line-color": "green",
+            "line-width": parseFloat(width),
+          },
+        });
+
+        map.on("click", layer, function (e) {
+          const coordinates = e.lngLat;
+          const properties = e.features[0].properties;
+          console.log(properties.admin_name);
+
+          // Create a popup and set its content to feature properties
+          new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(
+              `<strong>${layer}</strong><br><p><strong>Admin Name:</strong>${properties.admin_name}</p><p><strong>Admin Type:</strong>${properties.admin_type}</p>`
+            )
+            .addTo(map);
+        });
+
+        // Change the cursor to pointer when the mouse is over the layer
+        map.on("mouseenter", layer, function () {
+          map.getCanvas().style.cursor = "pointer";
+        });
+
+        // Change the cursor back to default when the mouse leaves the layer
+        map.on("mouseleave", layer, function () {
+          map.getCanvas().style.cursor = "";
+        });
+      }
+
+      function addRoadsLayer(layer, color) {
+        map.addSource(layer, {
+          type: "vector",
+          tiles: [`http://127.0.0.1:8000/get_admin_mvt/${layer}/{z}/{x}/{y}/`], // Adjust URL to match your server endpoint
+          minzoom: 0,
+          maxzoom: 14,
+        });
+
+        map.addLayer({
+          id: layer,
+          type: "line",
+          source: layer,
+          "source-layer": layer,
+          layout: {},
+          paint: {
+            "line-color": color,
+            "line-width": 1,
+          },
+        });
+
+        map.on("click", layer, function (e) {
+          const coordinates = e.lngLat;
+          const properties = e.features[0].properties;
+          console.log(properties);
+
+          // Create a popup and set its content to feature properties
+          new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(
+              `<strong>${layer}</strong><br><p><strong>Road Name:</strong>${properties.road_name}</p><p><strong>Road Type:</strong>${properties.road_type}</p>`
+            )
+            .addTo(map);
+        });
+
+        // Change the cursor to pointer when the mouse is over the layer
+        map.on("mouseenter", layer, function () {
+          map.getCanvas().style.cursor = "pointer";
+        });
+
+        // Change the cursor back to default when the mouse leaves the layer
+        map.on("mouseleave", layer, function () {
+          map.getCanvas().style.cursor = "";
+        });
+      }
+
+      function addPointsLayer(layer, icon) {
+        map.addSource(layer, {
+          type: "vector",
+          tiles: [`http://127.0.0.1:8000/get_admin_mvt/${layer}/{z}/{x}/{y}/`], // Adjust URL to match your server endpoint
+          minzoom: 0,
+          maxzoom: 14,
+        });
+
+        // Add the icon image to the map's style
+        map.loadImage(icon, (error, image) => {
+          if (error) throw error;
+          if (!map.hasImage(layer + "-icon")) {
+            map.addImage(layer + "-icon", image);
+          }
+
+          map.addLayer({
+            id: layer,
+            type: "symbol",
+            source: layer,
+            "source-layer": layer,
+            layout: {
+              "icon-image": layer + "-icon",
+              "icon-size": 0.05, // Adjust the icon size as needed
+              "icon-allow-overlap": true,
+            },
+          });
+
+          map.on("click", layer, function (e) {
+            const coordinates = e.lngLat;
+            const properties = e.features[0].properties;
+            console.log(properties);
+
+            // Create a popup and set its content to feature properties
+            new mapboxgl.Popup()
+              .setLngLat(coordinates)
+              .setHTML(
+                `<strong>${layer}</strong><br><p><strong>Name:</strong> ${properties.name}</p><p><strong>Type:</strong> ${properties.type}</p>`
+              )
+              .addTo(map);
+          });
+
+          // Change the cursor to pointer when the mouse is over the layer
+          map.on("mouseenter", layer, function () {
+            map.getCanvas().style.cursor = "pointer";
+          });
+
+          // Change the cursor back to default when the mouse leaves the layer
+          map.on("mouseleave", layer, function () {
+            map.getCanvas().style.cursor = "";
+          });
+        });
+      }
+
+      document.querySelectorAll(".toggleLayer").forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+          const layer = this.dataset.layer;
+          const color = this.dataset.color;
+          if (this.checked) {
+            addFloodExtent(layer, color);
+          } else {
+            map.removeLayer(layer);
+            map.removeSource(layer);
+          }
+        });
+      });
+
+      document
+        .querySelectorAll(".toggleAdminLayer")
+        .forEach(function (checkbox) {
+          checkbox.addEventListener("change", function () {
+            const layer = this.dataset.layer;
+            const width = this.dataset.width;
+            if (this.checked) {
+              addAdminLayer(layer, width);
+            } else {
+              map.removeLayer(layer);
+              map.removeSource(layer);
+            }
+          });
+        });
+      document
+        .querySelectorAll(".toggleRoadsLayer")
+        .forEach(function (checkbox) {
+          checkbox.addEventListener("change", function () {
+            const layer = this.dataset.layer;
+            const color = this.dataset.color;
+            if (this.checked) {
+              addRoadsLayer(layer, color);
+            } else {
+              map.removeLayer(layer);
+              map.removeSource(layer);
+            }
+          });
+        });
+      document
+        .querySelectorAll(".togglePointsLayer")
+        .forEach(function (checkbox) {
+          checkbox.addEventListener("change", function () {
+            const layer = this.dataset.layer;
+            const icon = this.dataset.icon;
+            if (this.checked) {
+              addPointsLayer(layer, icon);
+            } else {
+              map.removeLayer(layer);
+              map.removeSource(layer);
+            }
+          });
+        });
+
+        document.getElementById('toggleSidebarButton').addEventListener('click', function () {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+      } else {
+        sidebar.classList.add('open');
+      }
     });
-  </script>
-</body>
+    </script>
+  </body>
 </html>
