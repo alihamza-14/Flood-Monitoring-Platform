@@ -62,7 +62,7 @@ class PakAdministrativeBoundary(models.Model):
         return self.geom.area
 
     class Meta:
-        db_table = 'pak_adm0'  # Replace with appropriate table name
+        db_table = 'pakistan_shapfile'  # Replace with appropriate table name
 
 ################################################################
 
